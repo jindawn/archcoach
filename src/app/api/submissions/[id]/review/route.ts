@@ -1,4 +1,6 @@
+import { createArtifactsGenerator } from "@/core/artifacts/generators";
 import { runReviewSession } from "@/core/review/orchestrator";
+import { insertArtifact, listArtifacts } from "@/db/repositories/artifacts";
 import { ROLE_KEYS, type RoleKey } from "@/core/review/roles";
 import { loadGatewayConfig } from "@/core/llm";
 import { listQuestions } from "@/db/repositories/questions";
@@ -52,6 +54,16 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     const questions = await listQuestions(id);
     const dossier = await buildDossier(submission, questions);
 
+    const generateArtifacts = createArtifactsGenerator(getGateway(), {
+      async insert(artifact) {
+        await insertArtifact(artifact);
+      },
+      async existingTypes(sessionId) {
+        const rows = await listArtifacts(sessionId);
+        return rows.map((row) => row.type);
+      },
+    });
+
     // fire-and-forget: progress is persisted step by step and polled by the UI
     void runReviewSession({
       sessionId: session.id,
@@ -59,6 +71,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       enabledRoles: [...ROLE_KEYS] as RoleKey[],
       gateway: getGateway(),
       store: reviewStore,
+      generateArtifacts,
       concurrency: Number(process.env.LLM_MAX_CONCURRENCY ?? 4),
     }).catch((error) => {
       logger.error({ err: error, sessionId: session.id }, "review session crashed");
