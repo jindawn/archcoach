@@ -91,6 +91,22 @@ Design choices worth stealing:
 |---|---|
 | ![clarify](docs/images/clarify.png) | ![report](docs/images/report.png) |
 
+## Use from Claude Code / Cursor (MCP)
+
+ArchCoach ships an MCP server, so your coding agent can submit a design and
+read the board's verdict — and, crucially, **answer the board's clarifying
+questions from your actual codebase** before the review starts.
+
+```bash
+# with an ArchCoach instance running (docker compose up):
+claude mcp add archcoach -- node /path/to/archcoach/mcp/archcoach-mcp.mjs
+```
+
+Tools: `get_clarifying_questions` → `start_review` → `get_review_report` →
+`get_artifact`, plus one-shot `review_architecture` and
+`list_training_scenarios`. Point `ARCHCOACH_URL` at a non-default instance.
+Smoke check: `node mcp/smoke.mjs`.
+
 ## Development
 
 ```bash

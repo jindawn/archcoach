@@ -82,6 +82,20 @@ flowchart TB
 |---|---|
 | ![追问](docs/images/clarify.png) | ![报告](docs/images/report.png) |
 
+## 在 Claude Code / Cursor 中使用（MCP）
+
+ArchCoach 内置 MCP server：让你的编码代理直接提交方案、读取评审结论——关键是，
+**代理可以根据你的真实代码库回答评审委员会的追问**，再开始正式评审。
+
+```bash
+# 先启动 ArchCoach 实例（docker compose up），然后：
+claude mcp add archcoach -- node /path/to/archcoach/mcp/archcoach-mcp.mjs
+```
+
+工具链：`get_clarifying_questions` → `start_review` → `get_review_report` →
+`get_artifact`；另有一步式 `review_architecture` 与 `list_training_scenarios`。
+非默认地址通过 `ARCHCOACH_URL` 指定。冒烟检查：`node mcp/smoke.mjs`。
+
 ## 本地开发
 
 ```bash
