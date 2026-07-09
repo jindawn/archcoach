@@ -8,7 +8,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.ts", "evals/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "evals/**/*.test.ts", "mcp/**/*.test.mjs"],
     environment: "node",
     coverage: {
       provider: "v8",
