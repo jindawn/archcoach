@@ -1,4 +1,5 @@
 import { getSessionUsage } from "@/db/repositories/callLogs";
+import { listQuestions } from "@/db/repositories/questions";
 import { getSessionDetails } from "@/db/repositories/sessions";
 import { getSubmission } from "@/db/repositories/submissions";
 import { fail, handleRouteError, ok } from "@/lib/api";
@@ -10,9 +11,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const details = await getSessionDetails(id);
     if (!details) return fail("评审会话不存在", 404);
 
-    const [submission, usage] = await Promise.all([
+    const [submission, usage, questions] = await Promise.all([
       getSubmission(details.session.submissionId),
       getSessionUsage(id),
+      listQuestions(details.session.submissionId),
     ]);
 
     return ok({
@@ -20,6 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       submission,
       roleReviews: details.roleReviews,
       artifacts: details.artifacts,
+      questions,
       usage,
     });
   } catch (error) {

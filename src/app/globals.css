@@ -1,26 +1,268 @@
 @import "tailwindcss";
 
+/* ============================================================
+   ArchCoach 设计系统 — 「评审会议室」
+   刻意的暗色单主题：评委卡片的点亮时刻是产品的记忆点。
+   暖炭底 + 琥珀金批注色 + 宋体标题的公文感 + 等宽数字。
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* surfaces */
+  --background: oklch(15.5% 0.008 75);
+  --card: oklch(19% 0.01 78);
+  --elevated: oklch(22.5% 0.012 78);
+  --popover: oklch(21% 0.012 78);
+
+  /* text */
+  --foreground: oklch(91% 0.012 85);
+  --muted-foreground: oklch(64% 0.014 80);
+
+  /* the annotation gold */
+  --primary: oklch(80% 0.125 82);
+  --primary-foreground: oklch(18% 0.02 80);
+  --ring: oklch(80% 0.125 82);
+
+  --secondary: oklch(26% 0.012 78);
+  --secondary-foreground: oklch(88% 0.012 85);
+  --muted: oklch(24% 0.01 78);
+  --accent: oklch(27% 0.02 82);
+  --accent-foreground: oklch(90% 0.05 85);
+  --destructive: oklch(58% 0.19 26);
+  --destructive-foreground: oklch(96% 0.01 80);
+  --border: oklch(29% 0.012 78);
+  --input: oklch(31% 0.012 78);
+
+  /* severity scale */
+  --severity-critical: oklch(58% 0.2 26);
+  --severity-high: oklch(70% 0.16 55);
+  --severity-medium: oklch(80% 0.13 90);
+  --severity-low: oklch(60% 0.02 80);
+
+  /* grades */
+  --grade-s: oklch(83% 0.14 85);
+  --grade-a: oklch(75% 0.15 150);
+  --grade-b: oklch(72% 0.12 230);
+  --grade-c: oklch(72% 0.15 60);
+  --grade-d: oklch(60% 0.19 26);
+
+  --radius: 0.5rem;
+
+  --font-display: "Songti SC", "STSong", "SimSun", "Noto Serif SC", "Noto Serif CJK SC", serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-card: var(--card);
+  --color-card-foreground: var(--foreground);
+  --color-elevated: var(--elevated);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-high: var(--severity-high);
+  --color-severity-medium: var(--severity-medium);
+  --color-severity-low: var(--severity-low);
+  --color-grade-s: var(--grade-s);
+  --color-grade-a: var(--grade-a);
+  --color-grade-b: var(--grade-b);
+  --color-grade-c: var(--grade-c);
+  --color-grade-d: var(--grade-d);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-geist-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    sans-serif;
+  --font-mono: var(--font-geist-mono), "SF Mono", Menlo, monospace;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(1200px 500px at 50% -10%, oklch(28% 0.04 82 / 0.35), transparent 70%),
+    radial-gradient(900px 600px at 90% 110%, oklch(22% 0.03 60 / 0.3), transparent 60%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- motion ---------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.7) rotate(-14deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-6deg);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px oklch(80% 0.125 82 / 0.25);
+  }
+  50% {
+    box-shadow: 0 0 24px 2px oklch(80% 0.125 82 / 0.28);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-stamp {
+  animation: stamp-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.role-card-running {
+  animation: glow-pulse 1.8s ease-in-out infinite;
+  border-color: oklch(80% 0.125 82 / 0.5) !important;
+}
+
+.role-card-lit {
+  border-color: oklch(80% 0.125 82 / 0.55) !important;
+  background:
+    radial-gradient(300px 120px at 50% 0%, oklch(80% 0.125 82 / 0.08), transparent 70%),
+    var(--elevated) !important;
+}
+
+.thinking-dots span {
+  animation: blink 1.4s infinite both;
+}
+.thinking-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.thinking-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-stamp {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+  .role-card-running {
+    animation: none;
+  }
+}
+
+/* ---------- long-form markdown ---------- */
+
+.prose-doc {
+  line-height: 1.85;
+  font-size: 0.925rem;
+}
+.prose-doc h1,
+.prose-doc h2,
+.prose-doc h3 {
+  font-family: var(--font-display);
+  color: var(--foreground);
+  margin: 1.6em 0 0.6em;
+  line-height: 1.4;
+}
+.prose-doc h1 {
+  font-size: 1.35rem;
+}
+.prose-doc h2 {
+  font-size: 1.15rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.35em;
+}
+.prose-doc h3 {
+  font-size: 1rem;
+}
+.prose-doc p,
+.prose-doc li {
+  color: oklch(82% 0.012 85);
+}
+.prose-doc ul,
+.prose-doc ol {
+  padding-left: 1.4em;
+  margin: 0.6em 0;
+  list-style: disc;
+}
+.prose-doc ol {
+  list-style: decimal;
+}
+.prose-doc code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--muted);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+.prose-doc pre {
+  background: oklch(13% 0.008 75);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9em 1.1em;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+.prose-doc pre code {
+  background: transparent;
+  padding: 0;
+}
+.prose-doc blockquote {
+  border-left: 3px solid var(--primary);
+  padding-left: 1em;
+  color: var(--muted-foreground);
+  margin: 0.8em 0;
+}
+.prose-doc strong {
+  color: var(--foreground);
+}
+.prose-doc table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  width: 100%;
+}
+.prose-doc th,
+.prose-doc td {
+  border: 1px solid var(--border);
+  padding: 0.4em 0.7em;
+  text-align: left;
 }
