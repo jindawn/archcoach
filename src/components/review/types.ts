@@ -11,6 +11,7 @@ export interface ReviewPayload {
     grade: string | null;
     summary: (SummaryOutput & { blocked: boolean; capApplied: string | null }) | null;
     error: string | null;
+    shareSlug?: string | null;
     startedAt: string | null;
     completedAt: string | null;
   };

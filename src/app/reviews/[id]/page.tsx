@@ -10,6 +10,7 @@ import { ArtifactsPanel } from "@/components/review/ArtifactsPanel";
 import { ReportOverview } from "@/components/review/ReportOverview";
 import { RoleCard } from "@/components/review/RoleCard";
 import { RoleOpinions } from "@/components/review/RoleOpinions";
+import { ShareButton } from "@/components/review/ShareButton";
 import { SESSION_STATUS_LABEL, isSessionRunning } from "@/components/review/status";
 import type { ReviewPayload } from "@/components/review/types";
 
@@ -58,9 +59,18 @@ export default function ReviewPage() {
         <p className="font-mono text-xs text-muted-foreground">
           {submission?.kind === "training" ? "训练题评审" : "架构方案评审"}
         </p>
-        <h1 id="review-heading" className="font-display mt-1 text-2xl font-bold">
-          {submission?.title ?? "评审"}
-        </h1>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+          <h1 id="review-heading" className="font-display text-2xl font-bold">
+            {submission?.title ?? "评审"}
+          </h1>
+          {session.status === "completed" && (
+            <ShareButton
+              sessionId={session.id}
+              shareSlug={session.shareSlug}
+              onChanged={() => mutate()}
+            />
+          )}
+        </div>
         {running && (
           <p className="mt-2 text-sm text-primary" role="status">
             {SESSION_STATUS_LABEL[session.status]}
