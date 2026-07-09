@@ -47,6 +47,9 @@ export function resolveModel(
         name: "ollama",
         apiKey: options.apiKey ?? "ollama",
         baseURL: `${base.replace(/\/$/, "")}/v1`,
+        // Ollama >= 0.5 honors response_format json_schema (constrained
+        // decoding), which makes even small local models emit valid JSON.
+        supportsStructuredOutputs: true,
       });
       return { provider, modelId, model: compatible(modelId) };
     }
