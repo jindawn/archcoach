@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   artifacts,
@@ -52,6 +52,14 @@ export async function getSessionDetails(id: string): Promise<SessionDetails | nu
     db.select().from(artifacts).where(eq(artifacts.sessionId, id)),
   ]);
   return { session, roleReviews: reviews, artifacts: sessionArtifacts };
+}
+
+export async function countSessionsSince(since: Date): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(reviewSessions)
+    .where(gte(reviewSessions.createdAt, since));
+  return row.count;
 }
 
 export async function updateSession(
