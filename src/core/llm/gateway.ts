@@ -108,15 +108,31 @@ function tryRecoverObject<T>(schema: z.ZodType<T>, rawText: string): T | undefin
   for (const candidate of candidates) {
     const result = schema.safeParse(candidate);
     if (result.success) return result.data;
+    // weak models often capitalize keys ("Evidence" instead of "evidence")
+    const lowered = schema.safeParse(lowerFirstKeys(candidate));
+    if (lowered.success) return lowered.data;
   }
   return undefined;
+}
+
+function lowerFirstKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(lowerFirstKeys);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, v]) => [
+        key.charAt(0).toLowerCase() + key.slice(1),
+        lowerFirstKeys(v),
+      ]),
+    );
+  }
+  return value;
 }
 
 /** Weak models without native structured-output support rely on this schema block. */
 function schemaInstruction<T>(schema: z.ZodType<T>): string {
   try {
     const jsonSchema = z.toJSONSchema(schema);
-    return `\n\n## 输出格式要求\n你必须输出一个严格符合以下 JSON Schema 的 JSON 对象。不要输出 markdown 代码块标记，不要输出任何解释文字，直接输出 JSON：\n${JSON.stringify(jsonSchema)}`;
+    return `\n\n## 输出格式要求\n你必须输出一个严格符合以下 JSON Schema 的**数据对象**。注意：\n- 输出的是数据本身，不是 schema。绝对不要输出 $schema、type、properties 这类 schema 关键字。\n- 字段名必须与 schema 中的完全一致（区分大小写）。\n- 不要输出 markdown 代码块标记，不要输出任何解释文字，直接输出 JSON。\n\nJSON Schema：\n${JSON.stringify(jsonSchema)}`;
   } catch {
     return "";
   }
