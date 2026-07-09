@@ -11,7 +11,8 @@ const envSchema = z.object({
   LLM_FALLBACK_API_KEY: z.string().optional(),
   LLM_BASE_URL: z.string().optional(),
   OLLAMA_BASE_URL: z.string().optional(),
-  LLM_MAX_CONCURRENCY: z.coerce.number().int().min(1).max(16).default(4),
+  LLM_MAX_CONCURRENCY: z.coerce.number().int().min(1).max(16).optional(),
+  LLM_TIMEOUT_MS: z.coerce.number().int().min(10_000).max(900_000).optional(),
 });
 
 /**
@@ -58,12 +59,16 @@ export function loadGatewayConfig(env: NodeJS.ProcessEnv = process.env): Gateway
     });
   }
 
+  // Local Ollama serves requests serially: parallel calls just queue and
+  // burn their timeout budget, so it gets concurrency 1 and a longer
+  // timeout by default. Explicit env values always win.
+  const isLocal = cfg.LLM_PROVIDER === "ollama";
   return {
     standard,
     strong,
     fallback,
-    maxConcurrency: cfg.LLM_MAX_CONCURRENCY,
-    timeoutMs: 120_000,
+    maxConcurrency: cfg.LLM_MAX_CONCURRENCY ?? (isLocal ? 1 : 4),
+    timeoutMs: cfg.LLM_TIMEOUT_MS ?? (isLocal ? 300_000 : 120_000),
     backoffMs: 500,
   };
 }

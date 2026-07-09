@@ -72,7 +72,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       gateway: getGateway(),
       store: reviewStore,
       generateArtifacts,
-      concurrency: Number(process.env.LLM_MAX_CONCURRENCY ?? 4),
+      concurrency: config.maxConcurrency,
     }).catch((error) => {
       logger.error({ err: error, sessionId: session.id }, "review session crashed");
     });

@@ -5,7 +5,7 @@ const baseEnv = {
   LLM_PROVIDER: "deepseek",
   LLM_API_KEY: "test-key",
   LLM_MODEL: "deepseek-chat",
-} as NodeJS.ProcessEnv;
+} as unknown as NodeJS.ProcessEnv;
 
 describe("loadGatewayConfig", () => {
   test("builds standard and strong models from env", () => {
@@ -13,6 +13,27 @@ describe("loadGatewayConfig", () => {
     expect(config.standard.modelId).toBe("deepseek-chat");
     expect(config.strong.modelId).toBe("deepseek-reasoner");
     expect(config.maxConcurrency).toBe(4);
+    expect(config.timeoutMs).toBe(120_000);
+  });
+
+  test("ollama gets serial concurrency and a longer timeout by default", () => {
+    const config = loadGatewayConfig({
+      LLM_PROVIDER: "ollama",
+      LLM_MODEL: "qwen3:8b",
+    } as unknown as NodeJS.ProcessEnv);
+    expect(config.maxConcurrency).toBe(1);
+    expect(config.timeoutMs).toBe(300_000);
+  });
+
+  test("explicit concurrency and timeout override smart defaults", () => {
+    const config = loadGatewayConfig({
+      LLM_PROVIDER: "ollama",
+      LLM_MODEL: "qwen3:8b",
+      LLM_MAX_CONCURRENCY: "2",
+      LLM_TIMEOUT_MS: "60000",
+    } as unknown as NodeJS.ProcessEnv);
+    expect(config.maxConcurrency).toBe(2);
+    expect(config.timeoutMs).toBe(60_000);
   });
 
   test("strong falls back to the standard model when unset", () => {
@@ -28,7 +49,7 @@ describe("loadGatewayConfig", () => {
     const config = loadGatewayConfig({
       LLM_PROVIDER: "ollama",
       LLM_MODEL: "qwen3:8b",
-    } as NodeJS.ProcessEnv);
+    } as unknown as NodeJS.ProcessEnv);
     expect(config.standard.provider).toBe("ollama");
   });
 
@@ -50,7 +71,7 @@ describe("loadGatewayConfig", () => {
 
   test("rejects unknown providers with a readable message", () => {
     expect(() =>
-      loadGatewayConfig({ ...baseEnv, LLM_PROVIDER: "aws-bedrock" } as NodeJS.ProcessEnv),
+      loadGatewayConfig({ ...baseEnv, LLM_PROVIDER: "aws-bedrock" } as unknown as NodeJS.ProcessEnv),
     ).toThrow(/Invalid LLM configuration/);
   });
 });
