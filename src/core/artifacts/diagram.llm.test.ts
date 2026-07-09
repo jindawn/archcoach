@@ -48,8 +48,7 @@ describe.skipIf(!enabled)("diagram generation with a real model", () => {
     const gateway = createGateway(loadGatewayConfig());
     const artifact = await generateDiagram(gateway, context);
     if (artifact.meta.renderRisk) {
-      // eslint-disable-next-line no-console
-      console.log("parseError:", artifact.meta.parseError, "\nsource:\n", artifact.content);
+      console.warn("parseError:", artifact.meta.parseError, "\nsource:\n", artifact.content);
     }
     expect(artifact.content).toContain("flowchart");
     expect(artifact.meta.renderRisk).toBe(false);
