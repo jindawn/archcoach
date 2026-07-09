@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "eval": "RUN_EVALS=1 vitest run evals --testTimeout=900000 --no-file-parallelism"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.9",
