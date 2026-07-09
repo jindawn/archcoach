@@ -169,6 +169,32 @@ describe("gateway", () => {
     expect(logs.at(-1)?.status).toBe("failed");
   });
 
+  test("recovers a bare array into the single-array-property wrapper", async () => {
+    const wrapperSchema = z.object({ questions: z.array(z.object({ q: z.string() })) });
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => textResponse(JSON.stringify([{ q: "why?" }])),
+    });
+    const gateway = createGateway(makeConfig(makeResolved(model)));
+
+    const result = await gateway.call({
+      task: "t",
+      schema: wrapperSchema,
+      system: "s",
+      prompt: "p",
+    });
+    expect(result.object.questions).toEqual([{ q: "why?" }]);
+  });
+
+  test("recovers json wrapped in markdown fences", async () => {
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => textResponse("Here you go:\n```json\n" + goodJson + "\n```"),
+    });
+    const gateway = createGateway(makeConfig(makeResolved(model)));
+
+    const result = await gateway.call({ task: "t", schema, system: "s", prompt: "p" });
+    expect(result.object.answer).toBe("ok");
+  });
+
   test("sanitizes secrets before they reach the provider", async () => {
     let seenPrompt = "";
     const model = new MockLanguageModelV4({
