@@ -8,6 +8,7 @@ import type { ReviewPayload } from "./types";
 
 const TYPE_LABEL: Record<string, string> = {
   c4_diagram: "架构图",
+  improved_solution: "改进版方案",
   adr: "架构决策记录",
   interview_script: "面试讲解稿",
 };
@@ -29,7 +30,7 @@ export function ArtifactsPanel({
   artifacts: ReviewPayload["artifacts"];
   submissionTitle: string;
 }) {
-  const ordered = ["c4_diagram", "adr", "interview_script"]
+  const ordered = ["c4_diagram", "improved_solution", "adr", "interview_script"]
     .map((type) => artifacts.find((artifact) => artifact.type === type))
     .filter((artifact): artifact is ReviewPayload["artifacts"][number] => Boolean(artifact));
   const [activeId, setActiveId] = useState<string | null>(ordered[0]?.id ?? null);

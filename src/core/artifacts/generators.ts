@@ -5,7 +5,12 @@ import type { RoleReviewRunResult } from "../review/role-reviewer";
 import type { SummaryOutput } from "../schemas/summary";
 import { extractMermaidSource, validateMermaid } from "./mermaid-validator";
 
-export const ARTIFACT_TYPES = ["c4_diagram", "adr", "interview_script"] as const;
+export const ARTIFACT_TYPES = [
+  "c4_diagram",
+  "improved_solution",
+  "adr",
+  "interview_script",
+] as const;
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 
 export interface GeneratedArtifact {
@@ -125,6 +130,60 @@ export async function generateAdrDoc(
   };
 }
 
+/**
+ * The improved solution needs more of the original text than the shared
+ * digest carries: it mirrors the original structure and only rewrites what
+ * reviewers criticized, so it gets a larger dossier excerpt.
+ */
+const IMPROVED_SOLUTION_DOSSIER_CHARS = 20_000;
+
+export async function generateImprovedSolution(
+  gateway: Gateway,
+  context: ArtifactContext,
+): Promise<GeneratedArtifact> {
+  const template = loadPromptTemplate("artifacts/improved-solution");
+  const verifiedIssues = context.roleResults.flatMap((result) =>
+    result.review.issues
+      .filter((issue) => issue.verified)
+      .map((issue) => ({
+        role: result.roleKey,
+        title: issue.title,
+        detail: issue.detail,
+        severity: issue.severity,
+      })),
+  );
+  const prompt = [
+    "## 原方案卷宗",
+    context.dossier.slice(0, IMPROVED_SOLUTION_DOSSIER_CHARS),
+    "## 评审结论（JSON）",
+    JSON.stringify(
+      {
+        prioritizedActions: context.summary.prioritizedActions,
+        topRisks: context.summary.topRisks,
+        verifiedIssues: verifiedIssues.slice(0, 24),
+      },
+      null,
+      1,
+    ),
+  ].join("\n\n");
+
+  const result = await gateway.call({
+    task: "artifact:improved_solution",
+    schema: markdownDocSchema,
+    system: template.content,
+    prompt,
+    tier: "strong",
+    promptVersion: template.version,
+    sessionId: context.sessionId,
+  });
+  return {
+    type: "improved_solution",
+    title: result.object.title,
+    content: result.object.markdown,
+    meta: { basedOnIssues: verifiedIssues.length },
+  };
+}
+
 export async function generateInterviewScript(
   gateway: Gateway,
   context: ArtifactContext,
@@ -154,7 +213,7 @@ export interface ArtifactSink {
 }
 
 /**
- * Runs the three generators in parallel. Individual failures are collected —
+ * Runs the artifact generators in parallel. Individual failures are collected —
  * a broken diagram must not sink an otherwise finished review.
  */
 export function createArtifactsGenerator(gateway: Gateway, sink: ArtifactSink) {
@@ -162,6 +221,8 @@ export function createArtifactsGenerator(gateway: Gateway, sink: ArtifactSink) {
     const existing = new Set(await sink.existingTypes(context.sessionId));
     const jobs: Array<() => Promise<GeneratedArtifact>> = [];
     if (!existing.has("c4_diagram")) jobs.push(() => generateDiagram(gateway, context));
+    if (!existing.has("improved_solution"))
+      jobs.push(() => generateImprovedSolution(gateway, context));
     if (!existing.has("adr")) jobs.push(() => generateAdrDoc(gateway, context));
     if (!existing.has("interview_script"))
       jobs.push(() => generateInterviewScript(gateway, context));

@@ -108,7 +108,7 @@ export const artifacts = pgTable(
     sessionId: uuid("session_id")
       .notNull()
       .references(() => reviewSessions.id, { onDelete: "cascade" }),
-    type: text("type").notNull(), // c4_diagram | adr | interview_script
+    type: text("type").notNull(), // c4_diagram | improved_solution | adr | interview_script
     title: text("title").notNull(),
     content: text("content").notNull(),
     meta: jsonb("meta").notNull().default({}),
