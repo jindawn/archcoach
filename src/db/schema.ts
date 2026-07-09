@@ -73,6 +73,8 @@ export const reviewSessions = pgTable(
     grade: text("grade"), // S | A | B | C | D
     summary: jsonb("summary"),
     error: text("error"),
+    /** unguessable public slug; non-null means the report is shared read-only */
+    shareSlug: text("share_slug").unique(),
     startedAt: timestamp("started_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

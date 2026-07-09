@@ -54,6 +54,18 @@ export async function getSessionDetails(id: string): Promise<SessionDetails | nu
   return { session, roleReviews: reviews, artifacts: sessionArtifacts };
 }
 
+export async function setShareSlug(id: string, slug: string | null): Promise<void> {
+  await db.update(reviewSessions).set({ shareSlug: slug }).where(eq(reviewSessions.id, id));
+}
+
+export async function getSessionByShareSlug(slug: string): Promise<ReviewSession | null> {
+  const [row] = await db
+    .select()
+    .from(reviewSessions)
+    .where(eq(reviewSessions.shareSlug, slug));
+  return row ?? null;
+}
+
 export async function countSessionsSince(since: Date): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
