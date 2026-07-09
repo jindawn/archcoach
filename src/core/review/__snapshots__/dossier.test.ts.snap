@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`compileDossier > produces a stable document structure 1`] = `
+"# 架构方案卷宗：秒杀系统
+
+类型：真实方案评审
+
+## 业务背景
+
+电商大促秒杀，峰值 QPS 5 万。
+
+## 架构方案
+
+## 方案
+
+网关限流 + Redis 预扣库存 + MQ 异步落单。
+
+## 技术栈
+
+Go + Redis + Kafka + MySQL
+
+## 约束条件
+
+- qps: 50000
+- sla: 99.95%
+- teamSize: 5
+
+## 架构图（mermaid 源码）
+
+\`\`\`
+flowchart LR
+ A-->B
+\`\`\`
+
+## 追问与回答
+
+**问：库存扣减如何防止超卖？**
+答：Redis lua 原子扣减。
+
+**问：MQ 挂了怎么办？**
+答：（提交者未回答）"
+`;
