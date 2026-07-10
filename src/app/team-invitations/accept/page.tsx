@@ -1,0 +1,2 @@
+import { AcceptInvitation } from "@/components/teams/AcceptInvitation";
+export default async function AcceptInvitationPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) { const { token } = await searchParams; return <section className="mx-auto max-w-md py-16"><h1 className="font-display text-2xl font-bold">加入团队评审室</h1><p className="my-5 text-sm text-muted-foreground">邀请仅对指定邮箱有效，有效期七天。</p>{token ? <AcceptInvitation token={token} /> : <p className="text-sm text-destructive-foreground">邀请链接无效。</p>}</section>; }
