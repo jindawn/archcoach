@@ -151,10 +151,11 @@ server.registerTool(
   "get_artifact",
   {
     title: "获取评审产物全文",
-    description: "获取某个评审产物的完整内容：c4_diagram（Mermaid 源码）、adr（决策记录合集）、interview_script（面试讲解稿）。",
+    description:
+      "获取某个评审产物的完整内容：c4_diagram（Mermaid 源码）、improved_solution（评审修订版方案）、adr（决策记录合集）、interview_script（面试讲解稿）。",
     inputSchema: {
       sessionId: z.string().uuid(),
-      type: z.enum(["c4_diagram", "adr", "interview_script"]),
+      type: z.enum(["c4_diagram", "improved_solution", "adr", "interview_script"]),
     },
   },
   async ({ sessionId, type }) => {

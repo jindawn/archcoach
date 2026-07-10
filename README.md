@@ -70,7 +70,7 @@ flowchart TB
     E --> F["Evidence verification<br/>(quotes must exist in your text)"]
     F --> G["Summarizer: verdict, conflicts,<br/>prioritized actions"]
     G --> H["Deterministic arbitration<br/>(blocking caps the grade — in code, not prompts)"]
-    H --> I["Artifacts: Mermaid diagram (syntax-validated),<br/>ADRs, interview script"]
+    H --> I["Artifacts: Mermaid diagram (syntax-validated),<br/>improved design, ADRs, interview script"]
 ```
 
 Design choices worth stealing:
@@ -122,7 +122,7 @@ diagram parse rate).
 
 ## Roadmap
 
-- **v1.1** — MCP server (`review_architecture` from Claude Code/Cursor), shareable report pages, auth, improved-design artifact
+- **v1.1** — auth and richer artifact workflows
 - **v1.2** — full 10-role board, training progress & recommendations, job queue
 - **v2** — team review rooms, org knowledge RAG
 

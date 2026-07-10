@@ -33,7 +33,7 @@ export interface ReviewPayload {
     type: string;
     title: string;
     content: string;
-    meta: { renderRisk?: boolean; parseError?: string };
+    meta: { renderRisk?: boolean; parseError?: string; basedOnIssues?: number };
   }>;
   questions: Array<{
     id: string;

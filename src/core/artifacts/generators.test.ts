@@ -112,11 +112,12 @@ describe("generateDiagram", () => {
 describe("createArtifactsGenerator", () => {
   const docResponse = { title: "文档", markdown: "# 文档\n\n" + "内容 ".repeat(60) };
 
-  test("generates all three artifacts and persists them", async () => {
+  test("generates all four artifacts and persists them", async () => {
     const inserted: GeneratedArtifact[] = [];
     const generator = createArtifactsGenerator(
       scriptedGateway({
         "artifact:c4_diagram": [{ title: "图", mermaid: goodMermaid }],
+        "artifact:improved_solution": [docResponse],
         "artifact:adr": [docResponse],
         "artifact:interview_script": [docResponse],
       }),
@@ -130,7 +131,12 @@ describe("createArtifactsGenerator", () => {
       },
     );
     await generator(context);
-    expect(inserted.map((a) => a.type).sort()).toEqual(["adr", "c4_diagram", "interview_script"]);
+    expect(inserted.map((a) => a.type).sort()).toEqual([
+      "adr",
+      "c4_diagram",
+      "improved_solution",
+      "interview_script",
+    ]);
   });
 
   test("skips artifact types that already exist (resume)", async () => {
@@ -144,7 +150,7 @@ describe("createArtifactsGenerator", () => {
           inserted.push(artifact);
         },
         async existingTypes() {
-          return ["c4_diagram", "adr"];
+          return ["c4_diagram", "improved_solution", "adr"];
         },
       },
     );
@@ -157,6 +163,7 @@ describe("createArtifactsGenerator", () => {
     const generator = createArtifactsGenerator(
       scriptedGateway({
         "artifact:c4_diagram": [new Error("boom")],
+        "artifact:improved_solution": [docResponse],
         "artifact:adr": [docResponse],
         "artifact:interview_script": [docResponse],
       }),
@@ -170,13 +177,18 @@ describe("createArtifactsGenerator", () => {
       },
     );
     await generator(context);
-    expect(inserted.map((a) => a.type).sort()).toEqual(["adr", "interview_script"]);
+    expect(inserted.map((a) => a.type).sort()).toEqual([
+      "adr",
+      "improved_solution",
+      "interview_script",
+    ]);
   });
 
   test("throws only when every generator fails", async () => {
     const generator = createArtifactsGenerator(
       scriptedGateway({
         "artifact:c4_diagram": [new Error("boom")],
+        "artifact:improved_solution": [new Error("boom")],
         "artifact:adr": [new Error("boom")],
         "artifact:interview_script": [new Error("boom")],
       }),
@@ -188,5 +200,69 @@ describe("createArtifactsGenerator", () => {
       },
     );
     await expect(generator(context)).rejects.toThrow(/所有产物生成均失败/);
+  });
+
+  test("improved solution feeds verified issues and mirrors the review basis", async () => {
+    let seenPrompt = "";
+    const gateway: Gateway = {
+      async call(request) {
+        seenPrompt = request.prompt;
+        return {
+          object: docResponse as never,
+          provider: "test",
+          model: "mock",
+          usage: { promptTokens: 1, completionTokens: 1 },
+          costUsd: 0,
+          latencyMs: 1,
+          degraded: false,
+          sanitizeHits: [],
+        };
+      },
+    };
+    const richContext: ArtifactContext = {
+      ...context,
+      roleResults: [
+        {
+          roleKey: "database",
+          riskLevel: "high",
+          promptVersion: "v1",
+          model: "mock",
+          degraded: false,
+          review: {
+            concerns: ["一致性"],
+            score: 4,
+            scoreRationale: "缺对账",
+            issues: [
+              {
+                title: "缺少对账",
+                detail: "库存悬挂",
+                evidence: "Redis 预扣库存",
+                severity: "high",
+                category: "consistency",
+                verified: true,
+              },
+              {
+                title: "幻觉问题",
+                detail: "无依据",
+                evidence: "不存在的引用",
+                severity: "low",
+                category: "other",
+                verified: false,
+              },
+            ],
+            risks: [],
+            suggestions: [],
+            followUpQuestions: [],
+            isBlocking: false,
+          },
+        },
+      ],
+    };
+    const { generateImprovedSolution } = await import("./generators");
+    const artifact = await generateImprovedSolution(gateway, richContext);
+    expect(artifact.type).toBe("improved_solution");
+    expect(artifact.meta.basedOnIssues).toBe(1); // unverified issue excluded
+    expect(seenPrompt).toContain("缺少对账");
+    expect(seenPrompt).not.toContain("幻觉问题");
   });
 });
