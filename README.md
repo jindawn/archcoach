@@ -137,7 +137,7 @@ diagram parse rate).
   durable review worker, team review rooms, and team knowledge retrieval
 - **Shipped** — owner/member roles and seven-day email-bound invitation links
 - **Shipped** — optional OpenAI-compatible semantic embeddings with lexical fallback
-- **Next** — outbound invitation email delivery
+- **Shipped** — optional Resend invitation email delivery with copyable-link fallback
 
 ## Contributing
 
