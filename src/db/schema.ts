@@ -82,6 +82,22 @@ export const teamMembers = pgTable(
   (t) => [uniqueIndex("uq_team_members_team_user").on(t.teamId, t.userId), index("idx_team_members_user").on(t.userId)],
 );
 
+export const teamInvitations = pgTable(
+  "team_invitations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+    invitedBy: uuid("invited_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role").notNull().default("member"),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_team_invitations_team").on(t.teamId), index("idx_team_invitations_email").on(t.email)],
+);
+
 export const knowledgeDocuments = pgTable("knowledge_documents", {
   id: uuid("id").primaryKey().defaultRandom(),
   teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
@@ -238,6 +254,7 @@ export type AuthSession = typeof authSessions.$inferSelect;
 export type OAuthAccount = typeof oauthAccounts.$inferSelect;
 export type Team = typeof teams.$inferSelect;
 export type TeamMember = typeof teamMembers.$inferSelect;
+export type TeamInvitation = typeof teamInvitations.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type NewSubmission = typeof submissions.$inferInsert;
 export type ClarifyingQuestion = typeof clarifyingQuestions.$inferSelect;
