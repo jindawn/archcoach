@@ -1,10 +1,35 @@
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
-import { authSessions, users, type User } from "@/db/schema";
+import { authSessions, oauthAccounts, users, type User } from "@/db/schema";
 
-export async function createUser(email: string, passwordHash: string): Promise<User> {
+export async function createUser(email: string, passwordHash: string | null): Promise<User> {
   const [user] = await db.insert(users).values({ email, passwordHash }).returning();
   return user;
+}
+
+export async function getUserByOAuthAccount(
+  provider: string,
+  providerAccountId: string,
+): Promise<User | null> {
+  const [row] = await db
+    .select({ user: users })
+    .from(oauthAccounts)
+    .innerJoin(users, eq(oauthAccounts.userId, users.id))
+    .where(
+      and(
+        eq(oauthAccounts.provider, provider),
+        eq(oauthAccounts.providerAccountId, providerAccountId),
+      ),
+    );
+  return row?.user ?? null;
+}
+
+export async function linkOAuthAccount(
+  userId: string,
+  provider: string,
+  providerAccountId: string,
+): Promise<void> {
+  await db.insert(oauthAccounts).values({ userId, provider, providerAccountId });
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {

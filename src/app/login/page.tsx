@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [githubEnabled, setGithubEnabled] = useState(false);
+  useEffect(() => {
+    void fetch("/api/auth/me").then((response) => response.json()).then((body) => setGithubEnabled(Boolean(body.data?.githubOAuthEnabled)));
+  }, []);
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setPending(true); setError(null);
     try {
@@ -35,6 +39,11 @@ export default function LoginPage() {
         {error && <p role="alert" className="text-sm text-destructive-foreground">{error}</p>}
         <Button className="w-full" disabled={pending}>{pending ? "处理中…" : mode === "login" ? "登录" : "注册并登录"}</Button>
       </form>
+      {githubEnabled && (
+        <a href="/api/auth/github" className="mt-4 block rounded-md border border-border py-2 text-center text-sm font-medium hover:bg-accent">
+          使用 GitHub 登录
+        </a>
+      )}
       <button className="mt-5 text-sm text-primary hover:underline" onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(null); }}>
         {mode === "login" ? "没有账号？创建一个" : "已有账号？登录"}
       </button>

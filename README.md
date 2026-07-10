@@ -58,6 +58,9 @@ Users can then register with email and a password; submissions and review
 reports are visible only to their owner. Existing local-mode submissions stay
 unowned and are intentionally hidden in authenticated mode.
 
+Optionally set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` to enable GitHub
+login. Configure the OAuth App callback as `https://your-host/api/auth/github/callback`.
+
 ### Supported models
 
 | Provider | Config | Notes |

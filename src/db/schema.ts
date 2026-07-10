@@ -28,7 +28,7 @@ export const scenarios = pgTable("scenarios", {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -44,6 +44,23 @@ export const authSessions = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("idx_auth_sessions_user").on(t.userId)],
+);
+
+export const oauthAccounts = pgTable(
+  "oauth_accounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("uq_oauth_accounts_provider_account").on(t.provider, t.providerAccountId),
+    index("idx_oauth_accounts_user").on(t.userId),
+  ],
 );
 
 /**
@@ -168,6 +185,7 @@ export const llmCallLogs = pgTable(
 export type Scenario = typeof scenarios.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type AuthSession = typeof authSessions.$inferSelect;
+export type OAuthAccount = typeof oauthAccounts.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type NewSubmission = typeof submissions.$inferInsert;
 export type ClarifyingQuestion = typeof clarifyingQuestions.$inferSelect;

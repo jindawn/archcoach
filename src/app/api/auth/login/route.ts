@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (!authenticationEnabled()) return fail("LOCAL_MODE=true 时不启用账号认证", 409);
     const input = loginSchema.parse(await request.json());
     const user = await getUserByEmail(normalizeEmail(input.email));
-    if (!user || !(await verifyPassword(input.password, user.passwordHash))) {
+    if (!user?.passwordHash || !(await verifyPassword(input.password, user.passwordHash))) {
       return fail("邮箱或密码不正确", 401);
     }
     const token = createSessionToken();
