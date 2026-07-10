@@ -53,7 +53,8 @@ watch the board light up.
 ### Multi-user deployment
 
 The default `LOCAL_MODE=true` is for one trusted local user. Before exposing
-ArchCoach to other people, set `LOCAL_MODE=false` and run `pnpm db:migrate`.
+ArchCoach to other people, set `LOCAL_MODE=false`. `pnpm dev`, `pnpm start`,
+and the Docker image apply pending database migrations automatically.
 Users can then register with email and a password; submissions and review
 reports are visible only to their owner. Existing local-mode submissions stay
 unowned and are intentionally hidden in authenticated mode.
@@ -124,7 +125,7 @@ Smoke check: `node mcp/smoke.mjs`.
 pnpm install
 docker compose up postgres -d
 cp .env.example .env        # DATABASE_URL already points at localhost:5433
-pnpm db:migrate && pnpm dev
+pnpm dev                       # applies pending migrations before Next.js starts
 ```
 
 `pnpm test` (78 unit/integration tests, mocked LLM) · `pnpm eval` (real-model

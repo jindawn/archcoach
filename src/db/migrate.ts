@@ -23,6 +23,9 @@ export async function runMigrations(): Promise<void> {
     logger.info("migrations applied");
   } catch (error) {
     logger.error({ err: error }, "migration failed");
-    if (process.env.NODE_ENV === "production") throw error;
+    // Continuing with a newer application schema against an older database
+    // produces misleading runtime query failures (for example, a missing
+    // column on the home page). Fail startup loudly in every environment.
+    throw error;
   }
 }

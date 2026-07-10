@@ -49,7 +49,8 @@ open http://localhost:3000
 ### 多用户部署
 
 默认的 `LOCAL_MODE=true` 仅适用于一位受信任的本地用户。准备让其他人访问前，
-请设为 `LOCAL_MODE=false` 并执行 `pnpm db:migrate`。用户可使用邮箱和密码注册；
+请设为 `LOCAL_MODE=false`。`pnpm dev`、`pnpm start` 与 Docker 镜像都会自动执行待处理迁移。
+用户可使用邮箱和密码注册；
 提交与评审报告仅对其所有者可见。此前在本地模式创建的无归属记录会在认证模式下隐藏。
 
 可选配置 `GITHUB_CLIENT_ID` 与 `GITHUB_CLIENT_SECRET` 启用 GitHub 登录；请在 GitHub OAuth App
@@ -111,7 +112,7 @@ claude mcp add archcoach -- node /path/to/archcoach/mcp/archcoach-mcp.mjs
 pnpm install
 docker compose up postgres -d
 cp .env.example .env        # DATABASE_URL 默认指向 localhost:5433
-pnpm db:migrate && pnpm dev
+pnpm dev                       # 启动 Next.js 前自动执行待处理迁移
 ```
 
 `pnpm test`（78 个单测/集成测试，mock LLM）· `pnpm eval`（真实模型质量门：证据率、blocking 检出、好坏方案分数排序、图可解析率）。
