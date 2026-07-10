@@ -29,6 +29,13 @@
       "when": 1783643079604,
       "tag": "0003_flaky_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783644857727,
+      "tag": "0004_neat_ghost_rider",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ import { buildDossier } from "@/lib/build-dossier";
 import { logger } from "@/lib/logger";
 import { reviewStore } from "@/lib/review-store";
 import { requireUser } from "@/lib/auth";
+import { enqueueReviewJob } from "@/db/repositories/jobs";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -53,31 +54,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
           fallback: config.fallback?.modelId ?? null,
         });
 
-    const questions = await listQuestions(id);
-    const dossier = await buildDossier(submission, questions);
-
-    const generateArtifacts = createArtifactsGenerator(getGateway(), {
-      async insert(artifact) {
-        await insertArtifact(artifact);
-      },
-      async existingTypes(sessionId) {
-        const rows = await listArtifacts(sessionId);
-        return rows.map((row) => row.type);
-      },
-    });
-
-    // fire-and-forget: progress is persisted step by step and polled by the UI
-    void runReviewSession({
-      sessionId: session.id,
-      dossier,
-      enabledRoles: [...ROLE_KEYS] as RoleKey[],
-      gateway: getGateway(),
-      store: reviewStore,
-      generateArtifacts,
-      concurrency: config.maxConcurrency,
-    }).catch((error) => {
-      logger.error({ err: error, sessionId: session.id }, "review session crashed");
-    });
+    await enqueueReviewJob(session.id);
 
     return ok({ sessionId: session.id, resumed: resumable ?? false, status: "reviewing" }, 202);
   } catch (error) {

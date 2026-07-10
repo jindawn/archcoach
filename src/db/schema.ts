@@ -123,6 +123,22 @@ export const reviewSessions = pgTable(
   (t) => [index("idx_sessions_submission").on(t.submissionId)],
 );
 
+/** Durable execution record for asynchronous review workers. */
+export const reviewJobs = pgTable(
+  "review_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: uuid("session_id").notNull().references(() => reviewSessions.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("queued"), // queued | running | completed | failed
+    attempts: integer("attempts").notNull().default(0),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("uq_review_jobs_session").on(t.sessionId), index("idx_review_jobs_status").on(t.status)],
+);
+
 export const roleReviews = pgTable(
   "role_reviews",
   {
@@ -190,6 +206,7 @@ export type Submission = typeof submissions.$inferSelect;
 export type NewSubmission = typeof submissions.$inferInsert;
 export type ClarifyingQuestion = typeof clarifyingQuestions.$inferSelect;
 export type ReviewSession = typeof reviewSessions.$inferSelect;
+export type ReviewJob = typeof reviewJobs.$inferSelect;
 export type RoleReview = typeof roleReviews.$inferSelect;
 export type Artifact = typeof artifacts.$inferSelect;
 export type LlmCallLog = typeof llmCallLogs.$inferSelect;
