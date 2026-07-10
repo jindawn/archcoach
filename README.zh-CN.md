@@ -52,6 +52,9 @@ open http://localhost:3000
 请设为 `LOCAL_MODE=false` 并执行 `pnpm db:migrate`。用户可使用邮箱和密码注册；
 提交与评审报告仅对其所有者可见。此前在本地模式创建的无归属记录会在认证模式下隐藏。
 
+可选配置 `GITHUB_CLIENT_ID` 与 `GITHUB_CLIENT_SECRET` 启用 GitHub 登录；请在 GitHub OAuth App
+中将回调地址配置为 `https://你的域名/api/auth/github/callback`。
+
 ### 支持的模型
 
 | Provider | 配置 | 说明 |
