@@ -16,13 +16,14 @@ import { searchKnowledge } from "@/db/repositories/knowledge";
 export async function POST(request: Request, { params }: { params: Promise<{ sessionId: string }> }) {
   try {
     const secret = process.env.JOB_WORKER_SECRET;
+    if (!secret && process.env.LOCAL_MODE === "false") return fail("未配置 JOB_WORKER_SECRET", 503);
     if (secret && request.headers.get("authorization") !== `Bearer ${secret}`) return fail("未授权", 401);
     const { sessionId } = await params;
     const session = await getSession(sessionId);
     if (!session) return fail("评审会话不存在", 404);
     const submission = await getSubmission(session.submissionId);
     if (!submission) return fail("提交不存在", 404);
-    await updateReviewJob(sessionId, { status: "running", attempts: 1, startedAt: new Date(), error: null });
+    await updateReviewJob(sessionId, { status: "running", startedAt: new Date(), error: null });
     const questions = await listQuestions(submission.id);
     await runReviewSession({
       sessionId, dossier: (await buildDossier(submission, questions)) + (submission.teamId ? `\n\n## 团队知识库（仅作参考）\n${(await searchKnowledge(submission.teamId, submission.solutionMd)).map((item) => `### ${item.title}\n${item.content}`).join("\n\n")}` : ""), enabledRoles: [...ROLE_KEYS] as RoleKey[],

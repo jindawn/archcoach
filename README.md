@@ -133,9 +133,9 @@ diagram parse rate).
 
 ## Roadmap
 
-- **v1.1** — auth and richer artifact workflows
-- **v1.2** — full 10-role board, training progress & recommendations, job queue
-- **v2** — team review rooms, org knowledge RAG
+- **Shipped** — authentication, GitHub OAuth, 10-role board, training recommendations,
+  durable review worker, team review rooms, and team knowledge retrieval
+- **Next** — semantic/vector retrieval, invitations and richer team roles
 
 ## Contributing
 

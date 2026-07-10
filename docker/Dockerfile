@@ -31,6 +31,7 @@ COPY --from=build /app/public ./public
 COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/prompts ./prompts
 COPY --from=build /app/scenarios ./scenarios
+COPY --from=build /app/worker ./worker
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]
