@@ -36,6 +36,13 @@
       "when": 1783644857727,
       "tag": "0004_neat_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783645176964,
+      "tag": "0005_new_boom_boom",
+      "breakpoints": true
     }
   ]
 }
