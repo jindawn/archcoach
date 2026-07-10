@@ -63,6 +63,25 @@ export const oauthAccounts = pgTable(
   ],
 );
 
+export const teams = pgTable("teams", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const teamMembers = pgTable(
+  "team_members",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("member"), // owner | member
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("uq_team_members_team_user").on(t.teamId, t.userId), index("idx_team_members_user").on(t.userId)],
+);
+
 /**
  * One architecture submission = one reviewable unit (v1 merges the
  * project/submission split; versioning arrives with multi-submission later).
@@ -71,6 +90,7 @@ export const submissions = pgTable("submissions", {
   id: uuid("id").primaryKey().defaultRandom(),
   /** Null only for submissions created before authentication was enabled. */
   userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),
   title: text("title").notNull(),
   kind: text("kind").notNull().default("real"), // real | training
   scenarioSlug: text("scenario_slug"),
@@ -202,6 +222,8 @@ export type Scenario = typeof scenarios.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type AuthSession = typeof authSessions.$inferSelect;
 export type OAuthAccount = typeof oauthAccounts.$inferSelect;
+export type Team = typeof teams.$inferSelect;
+export type TeamMember = typeof teamMembers.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type NewSubmission = typeof submissions.$inferInsert;
 export type ClarifyingQuestion = typeof clarifyingQuestions.$inferSelect;
