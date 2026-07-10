@@ -30,7 +30,7 @@ export function buildSummarizerInput(
   return [
     `## 方案摘要（卷宗开头节选）`,
     dossier.slice(0, DOSSIER_EXCERPT_CHARS),
-    `## 六位评委的评审结果（JSON）`,
+    `## 十位评委的评审结果（JSON）`,
     JSON.stringify(reviews, null, 1),
   ].join("\n\n");
 }

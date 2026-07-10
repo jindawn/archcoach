@@ -83,7 +83,7 @@ server.registerTool(
   {
     title: "提交追问回答并启动评审",
     description:
-      "为已创建的提交启动六角色评审（异步执行）。answers 可选——能回答的追问尽量回答。返回 sessionId，用 get_review_report 轮询结果。",
+      "为已创建的提交启动十角色评审（异步执行）。answers 可选——能回答的追问尽量回答。返回 sessionId，用 get_review_report 轮询结果。",
     inputSchema: {
       submissionId: z.string().uuid(),
       answers: z
@@ -98,7 +98,7 @@ server.registerTool(
     }
     const result = await api("POST", `/api/submissions/${submissionId}/review`);
     return text(
-      `评审已启动（sessionId: \`${result.sessionId}\`${result.resumed ? "，续跑之前的会话" : ""}）。\n六位评委正在并行评审，用 get_review_report 查询进展与最终报告。`,
+      `评审已启动（sessionId: \`${result.sessionId}\`${result.resumed ? "，续跑之前的会话" : ""}）。\n十位评委正在并行评审，用 get_review_report 查询进展与最终报告。`,
     );
   },
 );

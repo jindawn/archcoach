@@ -56,7 +56,7 @@ export default async function SharePage({ params }: ShareParams) {
 
       <footer className="mt-12 rounded-lg border border-border/60 bg-card p-5 text-center">
         <p className="text-sm text-muted-foreground">
-          想让 6 位 AI 评委也评审你的架构方案？
+          想让 10 位 AI 评委也评审你的架构方案？
         </p>
         <Link
           href="https://github.com/jindawn/archcoach"
