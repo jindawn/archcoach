@@ -4,11 +4,13 @@ import { createSubmission, listSubmissions } from "@/db/repositories/submissions
 import { getScenarioBySlug } from "@/db/repositories/scenarios";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
+import { isTeamMember } from "@/db/repositories/teams";
 
 export async function POST(request: NextRequest) {
   try {
     const input = createSubmissionSchema.parse(await request.json());
     const user = await requireUser();
+    if (input.teamId && (!user || !(await isTeamMember(input.teamId, user.id)))) return fail("无团队权限", 403);
     if (input.kind === "training") {
       if (!input.scenarioSlug) return fail("训练题提交必须指定 scenarioSlug", 422);
       const scenario = await getScenarioBySlug(input.scenarioSlug);

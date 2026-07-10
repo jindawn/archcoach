@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { reviewSessions, submissions, type NewSubmission, type Submission } from "@/db/schema";
+import { reviewSessions, submissions, teamMembers, type NewSubmission, type Submission } from "@/db/schema";
 
 export async function createSubmission(data: NewSubmission): Promise<Submission> {
   const [row] = await db.insert(submissions).values(data).returning();
@@ -13,6 +13,14 @@ export async function getSubmission(id: string, userId?: string): Promise<Submis
     .from(submissions)
     .where(userId ? and(eq(submissions.id, id), eq(submissions.userId, userId)) : eq(submissions.id, id));
   return row ?? null;
+}
+
+export async function getAccessibleSubmission(id: string, userId?: string): Promise<Submission | null> {
+  const submission = await getSubmission(id);
+  if (!submission || !userId || submission.userId === userId) return submission;
+  if (!submission.teamId) return null;
+  const [member] = await db.select().from(teamMembers).where(and(eq(teamMembers.teamId, submission.teamId), eq(teamMembers.userId, userId))).limit(1);
+  return member ? submission : null;
 }
 
 export interface SubmissionListItem extends Submission {
