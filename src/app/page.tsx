@@ -4,6 +4,8 @@ import { GradeStamp } from "@/components/review/GradeStamp";
 import { SESSION_STATUS_LABEL, isSessionRunning } from "@/components/review/status";
 import { requireUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { getTrainingProgress } from "@/db/repositories/training";
+import { REVIEW_ROLES } from "@/core/review/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +18,8 @@ export default async function HomePage() {
   const user = await requireUser();
   if (!user && process.env.LOCAL_MODE === "false") redirect("/login");
   const items = await listSubmissions(50, user?.id);
+  const progress = await getTrainingProgress(user?.id);
+  const weakestRole = REVIEW_ROLES.find((role) => role.key === progress.weakestRole)?.name;
 
   if (items.length === 0) {
     return (
@@ -43,6 +47,11 @@ export default async function HomePage() {
         </h1>
         <span className="font-mono text-xs text-muted-foreground">{items.length} 份卷宗</span>
       </div>
+      <section className="mb-8 grid gap-4 rounded-xl border border-border/70 bg-card p-5 sm:grid-cols-3" aria-label="训练进度">
+        <div><p className="text-xs text-muted-foreground">训练进度</p><p className="mt-1 font-display text-xl font-bold">{progress.completed} / {progress.total}</p></div>
+        <div><p className="text-xs text-muted-foreground">训练平均分</p><p className="mt-1 font-display text-xl font-bold">{progress.averageScore === null ? "尚无完成评审" : progress.averageScore.toFixed(1)}</p></div>
+        <div><p className="text-xs text-muted-foreground">下一题推荐</p>{progress.recommendedScenario ? <Link href={`/new?scenario=${progress.recommendedScenario.slug}`} className="mt-1 block font-medium text-primary hover:underline">{progress.recommendedScenario.title} · {progress.recommendedScenario.difficulty}</Link> : <p className="mt-1 font-medium">已完成全部题目</p>}{weakestRole && <p className="mt-1 text-xs text-muted-foreground">优先补强：{weakestRole}</p>}</div>
+      </section>
       <ul className="divide-y divide-border/60 border-y border-border/60">
         {items.map((item, index) => {
           const session = item.latestSession;
