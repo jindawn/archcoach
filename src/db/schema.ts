@@ -82,6 +82,20 @@ export const teamMembers = pgTable(
   (t) => [uniqueIndex("uq_team_members_team_user").on(t.teamId, t.userId), index("idx_team_members_user").on(t.userId)],
 );
 
+export const knowledgeDocuments = pgTable("knowledge_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const knowledgeChunks = pgTable("knowledge_chunks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  documentId: uuid("document_id").notNull().references(() => knowledgeDocuments.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  sortOrder: integer("sort_order").notNull(),
+}, (t) => [index("idx_knowledge_chunks_document").on(t.documentId)]);
+
 /**
  * One architecture submission = one reviewable unit (v1 merges the
  * project/submission split; versioning arrives with multi-submission later).
