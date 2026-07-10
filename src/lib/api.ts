@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { logger } from "@/lib/logger";
+import { AuthenticationError } from "@/lib/auth";
 
 export function ok<T>(data: T, status = 200): NextResponse {
   return NextResponse.json({ success: true, data }, { status });
@@ -12,6 +13,7 @@ export function fail(error: string, status = 400): NextResponse {
 
 /** Uniform catch-all: log details server-side, return a friendly message. */
 export function handleRouteError(error: unknown, context: string): NextResponse {
+  if (error instanceof AuthenticationError) return fail(error.message, 401);
   if (error instanceof ZodError) {
     const detail = error.issues
       .map((issue) => `${issue.path.join(".")}: ${issue.message}`)

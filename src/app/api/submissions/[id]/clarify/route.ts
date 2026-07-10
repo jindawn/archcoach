@@ -4,12 +4,14 @@ import { insertQuestions, listQuestions } from "@/db/repositories/questions";
 import { getGateway } from "@/lib/ai";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { buildDossier } from "@/lib/build-dossier";
+import { requireUser } from "@/lib/auth";
 
 /** Generates clarifying questions. Idempotent: existing questions are returned as-is. */
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const submission = await getSubmission(id);
+    const user = await requireUser();
+    const submission = await getSubmission(id, user?.id);
     if (!submission) return fail("提交不存在", 404);
 
     const existing = await listQuestions(id);

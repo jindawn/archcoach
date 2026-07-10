@@ -24,12 +24,36 @@ export const scenarios = pgTable("scenarios", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** Local accounts used when LOCAL_MODE=false. */
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const authSessions = pgTable(
+  "auth_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("idx_auth_sessions_user").on(t.userId)],
+);
+
 /**
  * One architecture submission = one reviewable unit (v1 merges the
  * project/submission split; versioning arrives with multi-submission later).
  */
 export const submissions = pgTable("submissions", {
   id: uuid("id").primaryKey().defaultRandom(),
+  /** Null only for submissions created before authentication was enabled. */
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   kind: text("kind").notNull().default("real"), // real | training
   scenarioSlug: text("scenario_slug"),
@@ -142,6 +166,8 @@ export const llmCallLogs = pgTable(
 );
 
 export type Scenario = typeof scenarios.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type AuthSession = typeof authSessions.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type NewSubmission = typeof submissions.$inferInsert;
 export type ClarifyingQuestion = typeof clarifyingQuestions.$inferSelect;

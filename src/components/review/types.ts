@@ -17,6 +17,7 @@ export interface ReviewPayload {
   };
   submission: {
     id: string;
+    userId: string | null;
     title: string;
     kind: string;
   } | null;
