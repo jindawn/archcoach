@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { rankKnowledge, splitKnowledgeDocument } from "./knowledge";
+import { cosineSimilarity, rankKnowledge, splitKnowledgeDocument } from "./knowledge";
 
 describe("knowledge retrieval", () => {
   test("splits long documents without losing content", () => {
@@ -13,5 +13,13 @@ describe("knowledge retrieval", () => {
       { title: "日志规范", content: "日志保存三十天" },
     ];
     expect(rankKnowledge(rows, "支付回调如何保证幂等")[0]?.title).toBe("支付规范");
+  });
+  test("uses semantic similarity when embeddings are available", () => {
+    const rows = [
+      { title: "语义相关", content: "没有字面重合", embedding: [1, 0] },
+      { title: "无关", content: "另一个片段", embedding: [0, 1] },
+    ];
+    expect(rankKnowledge(rows, "查询", 2, [1, 0])[0]?.title).toBe("语义相关");
+    expect(cosineSimilarity([1, 0], [1, 0])).toBe(1);
   });
 });
