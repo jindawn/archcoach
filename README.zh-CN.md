@@ -4,12 +4,12 @@
 
 **你的 AI 架构评审委员会。**
 
-提交一份架构方案，6 位 AI 评委先追问、再评审、后打分，
+提交一份架构方案，10 位 AI 评委先追问、再评审、后打分，
 最终交还给你：评审报告、Mermaid 架构图、改进版方案、ADR 决策记录、面试讲解稿。
 
 [English](./README.md) · [快速开始](#快速开始) · [工作原理](#工作原理) · [参与贡献](./CONTRIBUTING.md)
 
-<img src="docs/images/review-progress.png" alt="6 位 AI 评委实时评审打分" width="800" />
+<img src="docs/images/review-progress.png" alt="10 位 AI 评委实时评审打分" width="800" />
 
 </div>
 

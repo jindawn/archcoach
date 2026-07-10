@@ -77,7 +77,7 @@ flowchart TB
     A["Submission<br/>(context + design + constraints)"] --> B["Dossier compiler<br/>(one shared review context)"]
     B --> C["Clarify: 6-10 follow-up questions"]
     C --> D["Your answers (optional)"]
-    D --> E["6 role reviews — parallel,<br/>checkpointed, resumable"]
+    D --> E["10 role reviews — parallel,<br/>checkpointed, resumable"]
     E --> F["Evidence verification<br/>(quotes must exist in your text)"]
     F --> G["Summarizer: verdict, conflicts,<br/>prioritized actions"]
     G --> H["Deterministic arbitration<br/>(blocking caps the grade — in code, not prompts)"]

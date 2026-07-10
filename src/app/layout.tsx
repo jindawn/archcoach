@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ArchCoach — AI 架构评审委员会",
   description:
-    "提交你的架构方案，6 位 AI 评委追问、评审、打分，产出评审报告、架构图、ADR 和面试讲解稿。",
+    "提交你的架构方案，10 位 AI 评委追问、评审、打分，产出评审报告、架构图、ADR 和面试讲解稿。",
 };
 
 export default async function RootLayout({

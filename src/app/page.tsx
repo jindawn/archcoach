@@ -22,7 +22,7 @@ export default async function HomePage() {
       <section className="flex flex-col items-center justify-center py-24 text-center animate-fade-up">
         <p className="font-display text-3xl font-bold">评审桌还空着</p>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-          提交一份架构方案，6 位 AI 评委将对它进行追问、评审、打分，
+          提交一份架构方案，10 位 AI 评委将对它进行追问、评审、打分，
           并产出评审报告、架构图、ADR 与面试讲解稿。
         </p>
         <Link
