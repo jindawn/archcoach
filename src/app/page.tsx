@@ -2,6 +2,8 @@ import Link from "next/link";
 import { listSubmissions } from "@/db/repositories/submissions";
 import { GradeStamp } from "@/components/review/GradeStamp";
 import { SESSION_STATUS_LABEL, isSessionRunning } from "@/components/review/status";
+import { requireUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +13,9 @@ function submissionHref(item: Awaited<ReturnType<typeof listSubmissions>>[number
 }
 
 export default async function HomePage() {
-  const items = await listSubmissions();
+  const user = await requireUser();
+  if (!user && process.env.LOCAL_MODE === "false") redirect("/login");
+  const items = await listSubmissions(50, user?.id);
 
   if (items.length === 0) {
     return (

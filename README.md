@@ -50,6 +50,14 @@ open http://localhost:3000
 Click **载入示例 (Load Example)**, answer a couple of follow-up questions, and
 watch the board light up.
 
+### Multi-user deployment
+
+The default `LOCAL_MODE=true` is for one trusted local user. Before exposing
+ArchCoach to other people, set `LOCAL_MODE=false` and run `pnpm db:migrate`.
+Users can then register with email and a password; submissions and review
+reports are visible only to their owner. Existing local-mode submissions stay
+unowned and are intentionally hidden in authenticated mode.
+
 ### Supported models
 
 | Provider | Config | Notes |

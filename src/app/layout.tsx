@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { AuthControls } from "@/components/auth/AuthControls";
+import { authenticationEnabled, getCurrentUser } from "@/lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,11 +21,13 @@ export const metadata: Metadata = {
     "提交你的架构方案，6 位 AI 评委追问、评审、打分，产出评审报告、架构图、ADR 和面试讲解稿。",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const authEnabled = authenticationEnabled();
+  const user = authEnabled ? await getCurrentUser() : null;
   return (
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
@@ -50,6 +54,17 @@ export default function RootLayout({
               >
                 发起评审
               </Link>
+              {authEnabled &&
+                (user ? (
+                  <AuthControls email={user.email} />
+                ) : (
+                  <Link
+                    href="/login"
+                    className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    登录
+                  </Link>
+                ))}
             </nav>
           </div>
         </header>

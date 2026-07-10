@@ -15,6 +15,13 @@
       "when": 1783625849138,
       "tag": "0001_dusty_lily_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783642390967,
+      "tag": "0002_aromatic_blindfold",
+      "breakpoints": true
     }
   ]
 }
