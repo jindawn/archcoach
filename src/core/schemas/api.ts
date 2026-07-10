@@ -6,6 +6,7 @@ export const createSubmissionSchema = z.object({
   title: z.string().min(2).max(200),
   kind: z.enum(["real", "training"]).default("real"),
   scenarioSlug: z.string().max(100).optional(),
+  teamId: z.uuid().optional(),
   businessContext: z.string().min(20).max(20_000),
   solutionMd: z.string().min(50).max(MAX_SOLUTION_CHARS),
   techStack: z.string().max(2_000).optional(),

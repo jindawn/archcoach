@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { saveAnswersSchema } from "@/core/schemas/api";
 import { listQuestions, saveAnswer } from "@/db/repositories/questions";
-import { getSubmission } from "@/db/repositories/submissions";
+import { getAccessibleSubmission } from "@/db/repositories/submissions";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 
@@ -9,7 +9,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const user = await requireUser();
-    const submission = await getSubmission(id, user?.id);
+    const submission = await getAccessibleSubmission(id, user?.id);
     if (!submission) return fail("提交不存在", 404);
 
     const input = saveAnswersSchema.parse(await request.json());

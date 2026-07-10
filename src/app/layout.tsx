@@ -54,6 +54,7 @@ export default async function RootLayout({
               >
                 发起评审
               </Link>
+              {authEnabled && user && <Link href="/teams" className="rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">团队</Link>}
               {authEnabled &&
                 (user ? (
                   <AuthControls email={user.email} />

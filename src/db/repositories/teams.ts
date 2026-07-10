@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { teamMembers, teams, type Team } from "@/db/schema";
 
@@ -11,4 +11,10 @@ export async function createTeam(name: string, slug: string, ownerId: string): P
 }
 export async function listTeamsForUser(userId: string): Promise<Team[]> {
   return (await db.select({ team: teams }).from(teamMembers).innerJoin(teams, eq(teamMembers.teamId, teams.id)).where(eq(teamMembers.userId, userId)).orderBy(asc(teams.name))).map((row) => row.team);
+}
+export async function isTeamMember(teamId: string, userId: string): Promise<boolean> {
+  return Boolean((await db.select().from(teamMembers).where(and(eq(teamMembers.teamId, teamId), eq(teamMembers.userId, userId))).limit(1))[0]);
+}
+export async function addTeamMember(teamId: string, userId: string): Promise<void> {
+  await db.insert(teamMembers).values({ teamId, userId }).onConflictDoNothing();
 }
