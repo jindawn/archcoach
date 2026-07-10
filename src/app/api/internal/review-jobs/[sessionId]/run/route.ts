@@ -12,6 +12,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { buildDossier } from "@/lib/build-dossier";
 import { reviewStore } from "@/lib/review-store";
 import { searchKnowledge } from "@/db/repositories/knowledge";
+import { embedTexts } from "@/lib/embeddings";
 
 export async function POST(request: Request, { params }: { params: Promise<{ sessionId: string }> }) {
   try {
@@ -26,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ ses
     await updateReviewJob(sessionId, { status: "running", startedAt: new Date(), error: null });
     const questions = await listQuestions(submission.id);
     await runReviewSession({
-      sessionId, dossier: (await buildDossier(submission, questions)) + (submission.teamId ? `\n\n## 团队知识库（仅作参考）\n${(await searchKnowledge(submission.teamId, submission.solutionMd)).map((item) => `### ${item.title}\n${item.content}`).join("\n\n")}` : ""), enabledRoles: [...ROLE_KEYS] as RoleKey[],
+      sessionId, dossier: (await buildDossier(submission, questions)) + (submission.teamId ? `\n\n## 团队知识库（仅作参考）\n${(await searchKnowledge(submission.teamId, submission.solutionMd, (await embedTexts([submission.solutionMd.slice(0, 8_000)]))?.[0])).map((item) => `### ${item.title}\n${item.content}`).join("\n\n")}` : ""), enabledRoles: [...ROLE_KEYS] as RoleKey[],
       gateway: getGateway(), store: reviewStore, concurrency: loadGatewayConfig().maxConcurrency,
       generateArtifacts: createArtifactsGenerator(getGateway(), {
         async insert(artifact) { await insertArtifact(artifact); },

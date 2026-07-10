@@ -109,6 +109,7 @@ export const knowledgeChunks = pgTable("knowledge_chunks", {
   id: uuid("id").primaryKey().defaultRandom(),
   documentId: uuid("document_id").notNull().references(() => knowledgeDocuments.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
+  embedding: jsonb("embedding").$type<number[]>(),
   sortOrder: integer("sort_order").notNull(),
 }, (t) => [index("idx_knowledge_chunks_document").on(t.documentId)]);
 

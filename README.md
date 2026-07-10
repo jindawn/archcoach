@@ -136,7 +136,8 @@ diagram parse rate).
 - **Shipped** — authentication, GitHub OAuth, 10-role board, training recommendations,
   durable review worker, team review rooms, and team knowledge retrieval
 - **Shipped** — owner/member roles and seven-day email-bound invitation links
-- **Next** — semantic/vector retrieval and outbound invitation email delivery
+- **Shipped** — optional OpenAI-compatible semantic embeddings with lexical fallback
+- **Next** — outbound invitation email delivery
 
 ## Contributing
 
