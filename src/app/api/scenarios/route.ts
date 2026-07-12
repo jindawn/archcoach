@@ -12,6 +12,7 @@ export async function GET() {
         domain: s.domain,
         backgroundMd: s.backgroundMd,
         constraints: s.constraints,
+        guided: s.difficulty === "beginner" && Boolean(s.trainingGuide),
       })),
     );
   } catch (error) {

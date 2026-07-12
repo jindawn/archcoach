@@ -64,6 +64,13 @@
       "when": 1783658833673,
       "tag": "0008_opposite_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783850000000,
+      "tag": "0009_beginner_training",
+      "breakpoints": true
     }
   ]
 }

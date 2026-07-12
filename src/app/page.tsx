@@ -13,6 +13,7 @@ function submissionHref(item: Awaited<ReturnType<typeof listSubmissions>>[number
   if (item.latestSession) return `/reviews/${item.latestSession.id}`;
   return `/submissions/${item.id}/clarify`;
 }
+function scenarioHref(scenario: { slug: string; difficulty: string }): string { return scenario.difficulty === "beginner" ? `/training/${scenario.slug}` : `/new?scenario=${scenario.slug}`; }
 
 export default async function HomePage() {
   const user = await requireUser();
@@ -30,10 +31,10 @@ export default async function HomePage() {
           并产出评审报告、架构图、ADR 与面试讲解稿。
         </p>
         <Link
-          href="/new"
+          href={progress.recommendedScenario ? scenarioHref(progress.recommendedScenario) : "/new"}
           className="mt-8 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
-          发起第一次评审
+          {progress.recommendedScenario?.difficulty === "beginner" ? "开始第一道新手训练" : "发起第一次评审"}
         </Link>
       </section>
     );
@@ -50,7 +51,7 @@ export default async function HomePage() {
       <section className="mb-8 grid gap-4 rounded-xl border border-border/70 bg-card p-5 sm:grid-cols-3" aria-label="训练进度">
         <div><p className="text-xs text-muted-foreground">训练进度</p><p className="mt-1 font-display text-xl font-bold">{progress.completed} / {progress.total}</p></div>
         <div><p className="text-xs text-muted-foreground">训练平均分</p><p className="mt-1 font-display text-xl font-bold">{progress.averageScore === null ? "尚无完成评审" : progress.averageScore.toFixed(1)}</p></div>
-        <div><p className="text-xs text-muted-foreground">下一题推荐</p>{progress.recommendedScenario ? <Link href={`/new?scenario=${progress.recommendedScenario.slug}`} className="mt-1 block font-medium text-primary hover:underline">{progress.recommendedScenario.title} · {progress.recommendedScenario.difficulty}</Link> : <p className="mt-1 font-medium">已完成全部题目</p>}{weakestRole && <p className="mt-1 text-xs text-muted-foreground">优先补强：{weakestRole}</p>}</div>
+        <div><p className="text-xs text-muted-foreground">下一题推荐</p>{progress.recommendedScenario ? <Link href={scenarioHref(progress.recommendedScenario)} className="mt-1 block font-medium text-primary hover:underline">{progress.recommendedScenario.title} · {progress.recommendedScenario.difficulty}</Link> : <p className="mt-1 font-medium">已完成全部题目</p>}{weakestRole && <p className="mt-1 text-xs text-muted-foreground">优先补强：{weakestRole}</p>}</div>
       </section>
       <ul className="divide-y divide-border/60 border-y border-border/60">
         {items.map((item, index) => {

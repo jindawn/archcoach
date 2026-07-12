@@ -20,6 +20,7 @@ export const scenarios = pgTable("scenarios", {
   domain: text("domain").notNull(),
   backgroundMd: text("background_md").notNull(),
   constraints: jsonb("constraints").notNull().default({}),
+  trainingGuide: jsonb("training_guide"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -133,6 +134,29 @@ export const submissions = pgTable("submissions", {
   diagramType: text("diagram_type"), // mermaid | plantuml | c4dsl
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const trainingAttempts = pgTable("training_attempts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+  scenarioSlug: text("scenario_slug").notNull(),
+  status: text("status").notNull().default("in_progress"),
+  submissionId: uuid("submission_id").references(() => submissions.id, { onDelete: "set null" }),
+  independenceScore: doublePrecision("independence_score"),
+  capabilityScores: jsonb("capability_scores"),
+  recommendedStepId: text("recommended_step_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [index("idx_training_attempts_user").on(t.userId), index("idx_training_attempts_scenario").on(t.scenarioSlug)]);
+
+export const trainingStepAnswers = pgTable("training_step_answers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  attemptId: uuid("attempt_id").notNull().references(() => trainingAttempts.id, { onDelete: "cascade" }),
+  stepId: text("step_id").notNull(), revision: integer("revision").notNull().default(1),
+  answer: text("answer").notNull().default(""), hintLevel: integer("hint_level").notNull().default(0),
+  followUpQuestion: text("follow_up_question"), followUpAnswer: text("follow_up_answer"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("uq_training_step_revision").on(t.attemptId, t.stepId, t.revision), index("idx_training_answers_attempt").on(t.attemptId)]);
 
 export const clarifyingQuestions = pgTable(
   "clarifying_questions",
@@ -265,3 +289,5 @@ export type RoleReview = typeof roleReviews.$inferSelect;
 export type Artifact = typeof artifacts.$inferSelect;
 export type LlmCallLog = typeof llmCallLogs.$inferSelect;
 export type NewLlmCallLog = typeof llmCallLogs.$inferInsert;
+export type TrainingAttempt = typeof trainingAttempts.$inferSelect;
+export type TrainingStepAnswer = typeof trainingStepAnswers.$inferSelect;

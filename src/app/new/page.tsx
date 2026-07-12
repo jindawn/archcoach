@@ -15,6 +15,7 @@ interface ScenarioOption {
   difficulty: string;
   backgroundMd: string;
   constraints: Record<string, string | number>;
+  guided?: boolean;
 }
 
 interface FormState {
@@ -71,6 +72,10 @@ export default function NewSubmissionPage() {
     const scenario = scenarios.find((s) => s.slug === slug);
     if (!scenario) {
       set({ scenarioSlug: "" });
+      return;
+    }
+    if (scenario.guided) {
+      router.push(`/training/${scenario.slug}`);
       return;
     }
     const constraints = Object.fromEntries(

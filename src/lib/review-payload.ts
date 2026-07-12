@@ -3,6 +3,7 @@ import { listQuestions } from "@/db/repositories/questions";
 import { getSessionDetails } from "@/db/repositories/sessions";
 import { getSubmission } from "@/db/repositories/submissions";
 import type { ReviewSession } from "@/db/schema";
+import { getAttemptBySubmission } from "@/db/repositories/guidedTraining";
 
 /**
  * Assembles the full review payload used by GET /api/reviews/:id and the
@@ -18,6 +19,7 @@ export async function buildReviewPayload(sessionOrId: string | ReviewSession) {
     getSessionUsage(id),
     listQuestions(details.session.submissionId),
   ]);
+  const trainingAttempt = submission ? await getAttemptBySubmission(submission.id) : null;
 
   return {
     session: details.session,
@@ -26,5 +28,6 @@ export async function buildReviewPayload(sessionOrId: string | ReviewSession) {
     artifacts: details.artifacts,
     questions,
     usage,
+    trainingAttempt,
   };
 }

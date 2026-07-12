@@ -26,6 +26,11 @@ export async function getTrainingProgress(userId?: string): Promise<TrainingProg
   const roleScores = new Map<string, number[]>();
   for (const row of roleRows) if (row.score !== null) roleScores.set(row.roleKey, [...(roleScores.get(row.roleKey) ?? []), row.score]);
   const weakestRole = [...roleScores.entries()].sort((a, b) => (a[1].reduce((x, y) => x + y, 0) / a[1].length) - (b[1].reduce((x, y) => x + y, 0) / b[1].length))[0]?.[0] ?? null;
-  const recommendation = allScenarios.find((scenario) => !completed.has(scenario.slug)) ?? allScenarios[0];
+  const orderedScenarios = [...allScenarios].sort((a, b) => {
+    const rank = (difficulty: string) => difficulty === "beginner" ? 0 : difficulty === "easy" ? 1 : difficulty === "medium" ? 2 : 3;
+    return rank(a.difficulty) - rank(b.difficulty) || a.sortOrder - b.sortOrder;
+  });
+  const unfinishedBeginner = orderedScenarios.filter((scenario) => scenario.difficulty === "beginner" && !completed.has(scenario.slug));
+  const recommendation = unfinishedBeginner[0] ?? orderedScenarios.find((scenario) => !completed.has(scenario.slug)) ?? orderedScenarios[0];
   return { completed: completed.size, total: allScenarios.length, averageScore: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null, weakestRole, recommendedScenario: recommendation ? { slug: recommendation.slug, title: recommendation.title, difficulty: recommendation.difficulty } : null };
 }
