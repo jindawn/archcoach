@@ -10,6 +10,7 @@ export interface ScenarioSeed {
   backgroundMd: string;
   constraints: Record<string, unknown>;
   sortOrder: number;
+  trainingGuide?: Record<string, unknown> | null;
 }
 
 export async function upsertScenario(seed: ScenarioSeed): Promise<void> {
@@ -24,6 +25,7 @@ export async function upsertScenario(seed: ScenarioSeed): Promise<void> {
         domain: seed.domain,
         backgroundMd: seed.backgroundMd,
         constraints: seed.constraints,
+        trainingGuide: seed.trainingGuide,
         sortOrder: seed.sortOrder,
       },
     });

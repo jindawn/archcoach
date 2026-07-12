@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { GradeStamp } from "./GradeStamp";
 import { SEVERITY_CLASS, SEVERITY_LABEL } from "./status";
 import type { ReviewPayload } from "./types";
+import Link from "next/link";
+import { CAPABILITY_LABELS, type CapabilityKey } from "@/core/schemas/training";
 
 const ROLE_NAME = Object.fromEntries(REVIEW_ROLES.map((role) => [role.key, role.name]));
 
@@ -13,6 +15,7 @@ export function ReportOverview({ data }: { data: ReviewPayload }) {
 
   return (
     <div className="space-y-8">
+      {data.trainingAttempt && <GuidedScores data={data} />}
       {summary.blocked && (
         <p
           role="alert"
@@ -158,4 +161,15 @@ export function ReportOverview({ data }: { data: ReviewPayload }) {
       )}
     </div>
   );
+}
+
+function GuidedScores({ data }: { data: ReviewPayload }) {
+  const attempt = data.trainingAttempt!; const scores = attempt.capabilityScores?.scores ?? [];
+  const quality = scores.length ? Math.round(scores.reduce((sum, item) => sum + item.score, 0) / scores.length) : null;
+  return <div className="rounded-xl border border-primary/25 bg-primary/5 p-5">
+    <h3 className="font-display font-bold">新手训练成绩</h3>
+    <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-muted-foreground">方案质量</p><p className="font-display text-2xl font-bold">{quality ?? "—"}</p></div><div><p className="text-xs text-muted-foreground">独立完成度</p><p className="font-display text-2xl font-bold">{attempt.independenceScore ?? "—"}</p></div></div>
+    <ul className="mt-4 space-y-3">{scores.map((item)=><li key={item.capability}><div className="flex justify-between text-sm"><span>{CAPABILITY_LABELS[item.capability as CapabilityKey] ?? item.capability}</span><span className="font-mono">{item.score}</span></div><div className="mt-1 h-2 overflow-hidden rounded bg-muted"><span className="block h-full rounded bg-primary" style={{width:`${item.score}%`}} /></div><p className="mt-1 text-xs text-muted-foreground">{item.advice}</p></li>)}</ul>
+    {attempt.recommendedStepId && data.submission?.scenarioSlug && <Link className="mt-4 inline-block text-sm font-medium text-primary hover:underline" href={`/training/${data.submission.scenarioSlug}?attempt=${attempt.id}&retry=${attempt.recommendedStepId}`}>重做最薄弱步骤 →</Link>}
+  </div>;
 }

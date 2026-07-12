@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import { logger } from "@/lib/logger";
 import { upsertScenario, type ScenarioSeed } from "@/db/repositories/scenarios";
+import { trainingGuideSchema } from "@/core/schemas/training";
 
 /**
  * Seeds training scenarios from /scenarios/*.md at boot. Idempotent upsert
@@ -38,6 +39,8 @@ function toSeed(data: Record<string, unknown>, body: string, file: string): Scen
       throw new Error(`scenario ${file} is missing frontmatter field "${key}"`);
     }
   }
+  const trainingGuide = data.trainingGuide ? trainingGuideSchema.parse(data.trainingGuide) : null;
+  if (data.difficulty === "beginner" && !trainingGuide) throw new Error(`scenario ${file} with beginner difficulty requires trainingGuide`);
   return {
     slug: data.slug as string,
     title: data.title as string,
@@ -49,5 +52,6 @@ function toSeed(data: Record<string, unknown>, body: string, file: string): Scen
         ? (data.constraints as Record<string, unknown>)
         : {},
     sortOrder: typeof data.sortOrder === "number" ? data.sortOrder : 0,
+    trainingGuide,
   };
 }

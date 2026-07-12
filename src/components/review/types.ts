@@ -20,6 +20,7 @@ export interface ReviewPayload {
     userId: string | null;
     title: string;
     kind: string;
+    scenarioSlug?: string | null;
   } | null;
   roleReviews: Array<{
     roleKey: string;
@@ -49,4 +50,10 @@ export interface ReviewPayload {
     completionTokens: number;
     costUsd: number;
   };
+  trainingAttempt?: {
+    id: string;
+    independenceScore: number | null;
+    capabilityScores: { scores: Array<{ capability: string; score: number; evidence: string; advice: string }> } | null;
+    recommendedStepId: string | null;
+  } | null;
 }
