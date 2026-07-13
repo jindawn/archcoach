@@ -15,7 +15,6 @@ export function ReportOverview({ data }: { data: ReviewPayload }) {
 
   return (
     <div className="space-y-8">
-      {data.trainingAttempt && <GuidedScores data={data} />}
       {summary.blocked && (
         <p
           role="alert"
@@ -163,13 +162,27 @@ export function ReportOverview({ data }: { data: ReviewPayload }) {
   );
 }
 
-function GuidedScores({ data }: { data: ReviewPayload }) {
-  const attempt = data.trainingAttempt!; const scores = attempt.capabilityScores?.scores ?? [];
+export function BeginnerReport({ data, selectedVersion, busy, onReassess, onReview }: { data: ReviewPayload; selectedVersion?: number; busy?: boolean; onReassess?: (version:number)=>void; onReview?: (version:number)=>void }) {
+  const attempt = data.trainingAttempt!; const version = attempt.versions.find((item)=>item.version===selectedVersion) ?? attempt.currentVersion ?? attempt.versions.at(-1); const scores = version?.capabilityScores?.scores ?? [];
   const quality = scores.length ? Math.round(scores.reduce((sum, item) => sum + item.score, 0) / scores.length) : null;
-  return <div className="rounded-xl border border-primary/25 bg-primary/5 p-5">
-    <h3 className="font-display font-bold">新手训练成绩</h3>
-    <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-muted-foreground">方案质量</p><p className="font-display text-2xl font-bold">{quality ?? "—"}</p></div><div><p className="text-xs text-muted-foreground">独立完成度</p><p className="font-display text-2xl font-bold">{attempt.independenceScore ?? "—"}</p></div></div>
+  if (!version) return null;
+  const previous=attempt.versions.find((item)=>item.version===version.version-1); const previousScores=previous?.capabilityScores?.scores??[]; const previousQuality=previousScores.length?Math.round(previousScores.reduce((sum,item)=>sum+item.score,0)/previousScores.length):null;
+  const issues = [...scores].sort((a,b)=>a.score-b.score).map((s)=>s.advice);
+  for (const action of data.session.summary?.prioritizedActions ?? []) if (issues.length < 3) issues.push(action.action);
+  const takeaways = version.answerSnapshot.map((a)=>a.finalFeedback?.takeaway).filter((x):x is string=>Boolean(x));
+  return <div className="space-y-6">
+   <div className="flex flex-wrap gap-2">{attempt.versions.map((item)=><Link key={item.id} href={item.session?`/reviews/${item.session.id}`:`/reviews/${data.session.id}?trainingVersion=${item.version}`} className={`rounded border px-3 py-1 text-sm ${item.version===version.version?"border-primary text-primary":""}`}>v{item.version}{!item.session&&" · 未评审"}</Link>)}</div>
+   <div className="rounded-xl border border-primary/25 bg-primary/5 p-5">
+    <h3 className="font-display font-bold">新手训练成绩 · v{version.version}</h3>
+    <div className="mt-3 grid grid-cols-2 gap-3"><div><p className="text-xs text-muted-foreground">方案质量</p><p className="font-display text-2xl font-bold">{version.assessmentStatus==="completed"?quality:"暂未评分"}</p></div><div><p className="text-xs text-muted-foreground">独立完成度</p><p className="font-display text-2xl font-bold">{version.independenceScore}</p></div></div>
+    {previous&&<p className="mt-2 text-xs text-muted-foreground">较 v{previous.version}：方案质量 {quality!=null&&previousQuality!=null?`${quality-previousQuality>=0?"+":""}${quality-previousQuality}`:"—"} · 独立完成度 {version.independenceScore-previous.independenceScore>=0?"+":""}{version.independenceScore-previous.independenceScore}</p>}
+    {version.assessmentStatus!=="completed"&&<button disabled={busy} onClick={()=>onReassess?.(version.version)} className="mt-3 text-sm text-primary underline">重新评分</button>}
     <ul className="mt-4 space-y-3">{scores.map((item)=><li key={item.capability}><div className="flex justify-between text-sm"><span>{CAPABILITY_LABELS[item.capability as CapabilityKey] ?? item.capability}</span><span className="font-mono">{item.score}</span></div><div className="mt-1 h-2 overflow-hidden rounded bg-muted"><span className="block h-full rounded bg-primary" style={{width:`${item.score}%`}} /></div><p className="mt-1 text-xs text-muted-foreground">{item.advice}</p></li>)}</ul>
-    {attempt.recommendedStepId && data.submission?.scenarioSlug && <Link className="mt-4 inline-block text-sm font-medium text-primary hover:underline" href={`/training/${data.submission.scenarioSlug}?attempt=${attempt.id}&retry=${attempt.recommendedStepId}`}>重做最薄弱步骤 →</Link>}
+    {version.recommendedStepId&&data.submission?.scenarioSlug&&<Link className="mt-4 inline-block text-sm font-medium text-primary hover:underline" href={`/training/${data.submission.scenarioSlug}?attempt=${attempt.id}&retry=${version.recommendedStepId}`}>重做最薄弱步骤 →</Link>}
+    {!version.submissionId&&<button disabled={busy} onClick={()=>onReview?.(version.version)} className="ml-4 mt-4 text-sm font-medium text-primary underline">确认并重新评审</button>}
+   </div>
+   <div className="rounded-lg border bg-card p-5"><h3 className="font-display font-bold">最重要的三个问题</h3><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm">{issues.slice(0,3).map((issue,i)=><li key={i}>{issue}</li>)}</ol></div>
+   {takeaways.length>0&&<div className="rounded-lg border bg-card p-5"><h3 className="font-display font-bold">教练总结</h3><ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">{takeaways.map((item,i)=><li key={i}>{item}</li>)}</ul></div>}
+   {previous&&<details className="rounded-lg border bg-card p-5"><summary className="cursor-pointer font-display font-bold">查看 v{previous.version} → v{version.version} 方案变化</summary><div className="mt-4 grid gap-4 md:grid-cols-2"><pre className="whitespace-pre-wrap text-xs text-muted-foreground">{previous.solutionMd}</pre><pre className="whitespace-pre-wrap text-xs">{version.solutionMd}</pre></div></details>}
   </div>;
 }

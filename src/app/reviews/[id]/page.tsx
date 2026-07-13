@@ -1,13 +1,13 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import { REVIEW_ROLES } from "@/core/review/roles";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArtifactsPanel } from "@/components/review/ArtifactsPanel";
-import { ReportOverview } from "@/components/review/ReportOverview";
+import { BeginnerReport, ReportOverview } from "@/components/review/ReportOverview";
 import { RoleCard } from "@/components/review/RoleCard";
 import { RoleOpinions } from "@/components/review/RoleOpinions";
 import { ShareButton } from "@/components/review/ShareButton";
@@ -22,7 +22,10 @@ const fetcher = (url: string) =>
 
 export default function ReviewPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const selectedTrainingVersion = Number(useSearchParams().get("trainingVersion")) || undefined;
   const [retrying, setRetrying] = useState(false);
+  const [trainingBusy, setTrainingBusy] = useState(false);
   const { data: body, mutate } = useSWR(`/api/reviews/${id}`, fetcher, {
     refreshInterval: (latest) =>
       latest?.data && !isSessionRunning(latest.data.session.status) ? 0 : 2_500,
@@ -52,6 +55,8 @@ export default function ReviewPage() {
       setRetrying(false);
     }
   };
+  const reassess = async (version: number) => { if (!data.trainingAttempt) return; setTrainingBusy(true); await fetch(`/api/training/attempts/${data.trainingAttempt.id}/versions/${version}/assessment`, {method:"POST"}); await mutate(); setTrainingBusy(false); };
+  const reviewVersion = async (version: number) => { if (!data.trainingAttempt) return; setTrainingBusy(true); const body=await fetch(`/api/training/attempts/${data.trainingAttempt.id}/versions/${version}/review`,{method:"POST"}).then((r)=>r.json()); setTrainingBusy(false); if(body.success)router.push(`/submissions/${body.data.submissionId}/clarify`); };
 
   return (
     <section aria-labelledby="review-heading">
@@ -107,26 +112,18 @@ export default function ReviewPage() {
         </div>
       ) : (
         <>
-          <Tabs defaultValue="overview">
-            <TabsList className="mb-6">
-              <TabsTrigger value="overview">总览</TabsTrigger>
-              <TabsTrigger value="opinions">评委意见</TabsTrigger>
-              <TabsTrigger value="artifacts">评审产物</TabsTrigger>
-              <TabsTrigger value="questions">追问记录</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview">
-              <ReportOverview data={data} />
-            </TabsContent>
-            <TabsContent value="opinions">
-              <RoleOpinions reviews={orderedReviews} />
-            </TabsContent>
-            <TabsContent value="artifacts">
-              <ArtifactsPanel artifacts={data.artifacts} submissionTitle={submission?.title ?? "评审"} />
-            </TabsContent>
-            <TabsContent value="questions">
-              <QuestionsLog questions={data.questions} />
-            </TabsContent>
-          </Tabs>
+          {data.trainingAttempt ? (
+            <Tabs defaultValue="beginner">
+              <TabsList className="mb-6">
+                <TabsTrigger value="beginner">新手报告</TabsTrigger>
+                <TabsTrigger value="committee">委员会报告</TabsTrigger>
+              </TabsList>
+              <TabsContent value="beginner">
+                <BeginnerReport data={data} selectedVersion={selectedTrainingVersion} busy={trainingBusy} onReassess={reassess} onReview={reviewVersion} />
+              </TabsContent>
+              <TabsContent value="committee"><CommitteeTabs data={data} reviews={orderedReviews} /></TabsContent>
+            </Tabs>
+          ) : <CommitteeTabs data={data} reviews={orderedReviews} />}
 
           <footer className="mt-10 border-t border-border/60 pt-4 text-center font-mono text-xs text-muted-foreground">
             本次评审：{data.usage.calls} 次模型调用 · 输入 {data.usage.promptTokens.toLocaleString()}{" "}
@@ -150,6 +147,8 @@ export default function ReviewPage() {
     </section>
   );
 }
+
+function CommitteeTabs({data,reviews}:{data:ReviewPayload;reviews:ReviewPayload["roleReviews"]}) { return <Tabs defaultValue="overview"><TabsList className="mb-6"><TabsTrigger value="overview">总览</TabsTrigger><TabsTrigger value="opinions">评委意见</TabsTrigger><TabsTrigger value="artifacts">评审产物</TabsTrigger><TabsTrigger value="questions">追问记录</TabsTrigger></TabsList><TabsContent value="overview"><ReportOverview data={data}/></TabsContent><TabsContent value="opinions"><RoleOpinions reviews={reviews}/></TabsContent><TabsContent value="artifacts"><ArtifactsPanel artifacts={data.artifacts} submissionTitle={data.submission?.title??"评审"}/></TabsContent><TabsContent value="questions"><QuestionsLog questions={data.questions}/></TabsContent></Tabs>; }
 
 function QuestionsLog({ questions }: { questions: ReviewPayload["questions"] }) {
   if (questions.length === 0) {
