@@ -55,5 +55,15 @@ export interface ReviewPayload {
     independenceScore: number | null;
     capabilityScores: { scores: Array<{ capability: string; score: number; evidence: string; advice: string }> } | null;
     recommendedStepId: string | null;
+    currentVersion: TrainingVersion | null;
+    versions: TrainingVersion[];
   } | null;
+}
+
+export interface TrainingVersion {
+  id: string; version: number; independenceScore: number; assessmentStatus: string; solutionMd: string;
+  capabilityScores: { scores: Array<{ capability: string; score: number; evidence: string; advice: string }> } | null;
+  recommendedStepId: string | null; submissionId: string | null; createdAt: string;
+  answerSnapshot: Array<{stepId:string;answer:string;followUpAnswer:string|null;hintLevel:number;firstFeedback:unknown;finalFeedback:{takeaway?:string}|null}>;
+  session: { id:string; status:string; overallScore:number|null; grade:string|null } | null;
 }

@@ -154,9 +154,25 @@ export const trainingStepAnswers = pgTable("training_step_answers", {
   stepId: text("step_id").notNull(), revision: integer("revision").notNull().default(1),
   answer: text("answer").notNull().default(""), hintLevel: integer("hint_level").notNull().default(0),
   followUpQuestion: text("follow_up_question"), followUpAnswer: text("follow_up_answer"),
+  contentVersion: integer("content_version").notNull().default(0),
+  firstFeedback: jsonb("first_feedback"), finalFeedback: jsonb("final_feedback"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("uq_training_step_revision").on(t.attemptId, t.stepId, t.revision), index("idx_training_answers_attempt").on(t.attemptId)]);
+
+export const trainingAttemptVersions = pgTable("training_attempt_versions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  attemptId: uuid("attempt_id").notNull().references(() => trainingAttempts.id, { onDelete: "cascade" }),
+  version: integer("version").notNull(),
+  answerSnapshot: jsonb("answer_snapshot").notNull(),
+  solutionMd: text("solution_md").notNull(),
+  independenceScore: doublePrecision("independence_score").notNull(),
+  capabilityScores: jsonb("capability_scores"),
+  assessmentStatus: text("assessment_status").notNull().default("pending"), // pending | completed | unavailable
+  recommendedStepId: text("recommended_step_id"),
+  submissionId: uuid("submission_id").references(() => submissions.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [uniqueIndex("uq_training_attempt_version").on(t.attemptId, t.version), index("idx_training_versions_submission").on(t.submissionId)]);
 
 export const clarifyingQuestions = pgTable(
   "clarifying_questions",
@@ -291,3 +307,4 @@ export type LlmCallLog = typeof llmCallLogs.$inferSelect;
 export type NewLlmCallLog = typeof llmCallLogs.$inferInsert;
 export type TrainingAttempt = typeof trainingAttempts.$inferSelect;
 export type TrainingStepAnswer = typeof trainingStepAnswers.$inferSelect;
+export type TrainingAttemptVersion = typeof trainingAttemptVersions.$inferSelect;

@@ -3,7 +3,8 @@ import { listQuestions } from "@/db/repositories/questions";
 import { getSessionDetails } from "@/db/repositories/sessions";
 import { getSubmission } from "@/db/repositories/submissions";
 import type { ReviewSession } from "@/db/schema";
-import { getAttemptBySubmission } from "@/db/repositories/guidedTraining";
+import { getAttemptBySubmission, listAttemptVersions } from "@/db/repositories/guidedTraining";
+import { getLatestSessionForSubmission } from "@/db/repositories/sessions";
 
 /**
  * Assembles the full review payload used by GET /api/reviews/:id and the
@@ -19,7 +20,14 @@ export async function buildReviewPayload(sessionOrId: string | ReviewSession) {
     getSessionUsage(id),
     listQuestions(details.session.submissionId),
   ]);
-  const trainingAttempt = submission ? await getAttemptBySubmission(submission.id) : null;
+  const trainingLink = submission ? await getAttemptBySubmission(submission.id) : null;
+  const trainingAttempt = trainingLink ? {
+    ...trainingLink,
+    versions: await Promise.all((await listAttemptVersions(trainingLink.id)).map(async (version) => ({
+      ...version,
+      session: version.submissionId ? await getLatestSessionForSubmission(version.submissionId) : null,
+    }))),
+  } : null;
 
   return {
     session: details.session,

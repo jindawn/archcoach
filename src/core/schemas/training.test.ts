@@ -3,7 +3,10 @@ import path from "node:path";
 import matter from "gray-matter";
 import { describe, expect, test } from "vitest";
 import { computeIndependence, trainingGuideSchema } from "./training";
-import { assembleSolution, recommendedStep } from "@/lib/guided-training";
+import { assembleSolution, assessAnswers, generateFirstFeedback, recommendedStep } from "@/lib/guided-training";
+import type { Gateway, LlmCallResult } from "@/core/llm";
+
+function gatewayWith(object: unknown): Gateway { return { async call<T>(): Promise<LlmCallResult<T>> { return { object: object as T, provider:"test", model:"mock", usage:{promptTokens:1,completionTokens:1}, costUsd:0, latencyMs:1, degraded:false, sanitizeHits:[] }; } }; }
 
 describe("guided training", () => {
   test("both beginner scenarios contain valid guides", () => {
@@ -42,5 +45,18 @@ describe("guided training", () => {
       { capability: "capacity" as const, score: 70, evidence: "x", advice: "x" },
     ] };
     expect(recommendedStep(guide, scores, new Map([["technology", 3], ["data", 1]]))).toBe("technology");
+  });
+
+  test("rejects coach feedback whose evidence is not in the learner answer", async () => {
+    const { data } = matter(fs.readFileSync(path.join(process.cwd(), "scenarios", "short-url-beginner.md"), "utf8")); const guide=trainingGuideSchema.parse(data.trainingGuide);
+    const invalid={strengths:[{point:"识别了读链路",evidence:"用户从未写过的句子"}],gaps:[],followUpQuestion:"哪个链路更敏感？"};
+    expect(await generateFirstFeedback(guide,"requirements","我会区分生成和跳转",gatewayWith(invalid))).toBeNull();
+  });
+
+  test("marks incomplete or unverifiable assessments unavailable", async () => {
+    const { data } = matter(fs.readFileSync(path.join(process.cwd(), "scenarios", "short-url-beginner.md"), "utf8")); const guide=trainingGuideSchema.parse(data.trainingGuide);
+    const answers=guide.steps.map((step)=>({stepId:step.id,answer:`回答-${step.id}`,followUpAnswer:null}));
+    const incomplete={scores:[{capability:"requirements",score:90,evidence:"回答-requirements",advice:"继续"}]};
+    expect(await assessAnswers(guide,answers,gatewayWith(incomplete))).toBeNull();
   });
 });

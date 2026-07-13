@@ -28,7 +28,16 @@ export const capabilityAssessmentSchema = z.object({ scores: z.array(z.object({
   capability: z.enum(CAPABILITY_KEYS), score: z.number().min(0).max(100), evidence: z.string().min(1).max(500), advice: z.string().min(1).max(500),
 })).min(1) });
 export type CapabilityAssessment = z.infer<typeof capabilityAssessmentSchema>;
-export const followUpSchema = z.object({ needed: z.boolean(), question: z.string().max(500) });
+export const firstFeedbackSchema = z.object({
+  strengths: z.array(z.object({ point: z.string().min(1).max(300), evidence: z.string().min(1).max(200) })).max(3),
+  gaps: z.array(z.object({ point: z.string().min(1).max(300), rubricItem: z.string().min(1).max(300) })).max(3),
+  followUpQuestion: z.string().min(1).max(500),
+});
+export type FirstFeedback = z.infer<typeof firstFeedbackSchema>;
+export const finalFeedbackSchema = z.object({
+  resolved: z.boolean(), correction: z.string().min(1).max(500), takeaway: z.string().min(1).max(500),
+});
+export type FinalFeedback = z.infer<typeof finalFeedbackSchema>;
 
 export function computeIndependence(levels: number[]): number {
   if (!levels.length) return 100;

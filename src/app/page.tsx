@@ -10,7 +10,7 @@ import { REVIEW_ROLES } from "@/core/review/roles";
 export const dynamic = "force-dynamic";
 
 function submissionHref(item: Awaited<ReturnType<typeof listSubmissions>>[number]): string {
-  if (item.latestSession) return `/reviews/${item.latestSession.id}`;
+  if (item.latestSession) return `/reviews/${item.latestSession.id}${item.guidedTraining?.pendingReview ? `?trainingVersion=${item.guidedTraining.version}` : ""}`;
   return `/submissions/${item.id}/clarify`;
 }
 function scenarioHref(scenario: { slug: string; difficulty: string }): string { return scenario.difficulty === "beginner" ? `/training/${scenario.slug}` : `/new?scenario=${scenario.slug}`; }
@@ -71,7 +71,7 @@ export default async function HomePage() {
                     {item.title}
                   </p>
                   <p className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{item.kind === "training" ? "训练题" : "真实方案"}</span>
+                    <span>{item.kind === "training" ? `训练题${item.guidedTraining ? ` · v${item.guidedTraining.version}${item.guidedTraining.pendingReview ? " 待重新评审" : ""}` : ""}` : "真实方案"}</span>
                     <span className="font-mono">
                       {new Date(item.createdAt).toLocaleDateString("zh-CN")}
                     </span>
